@@ -1,0 +1,18 @@
+<component name="libraryTable">
+  <library name="Gradle: :autel-sdk:@aar">
+    <CLASSES>
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/1b0d7d45fbc8b6a62d62a175ae0d169b/jetified-autel-sdk/AndroidManifest.xml" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/1b0d7d45fbc8b6a62d62a175ae0d169b/jetified-autel-sdk/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/1b0d7d45fbc8b6a62d62a175ae0d169b/jetified-autel-sdk/res" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/1b0d7d45fbc8b6a62d62a175ae0d169b/jetified-autel-sdk/jars/libs/gson-2.8.5.jar!/" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/1b0d7d45fbc8b6a62d62a175ae0d169b/jetified-autel-sdk/jars/libs/jsi-1.0-20120105.212653-1.jar!/" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/1b0d7d45fbc8b6a62d62a175ae0d169b/jetified-autel-sdk/jars/libs/httpclient-4.2.5.jar!/" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/1b0d7d45fbc8b6a62d62a175ae0d169b/jetified-autel-sdk/jars/libs/commons-codec-1.5.jar!/" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/1b0d7d45fbc8b6a62d62a175ae0d169b/jetified-autel-sdk/jars/libs/jsch-0.1.54.jar!/" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/1b0d7d45fbc8b6a62d62a175ae0d169b/jetified-autel-sdk/jars/libs/httpcore-4.2.4.jar!/" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/1b0d7d45fbc8b6a62d62a175ae0d169b/jetified-autel-sdk/jars/libs/hamcrest-core-1.3-sources.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
