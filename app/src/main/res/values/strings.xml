@@ -42,6 +42,7 @@
     <string name="mission_alititude">Altitude</string>
     <string name="mission_hover_time">Hover Duration</string>
     <string name="mission_yes">Yes</string>
+    <string name="mission_aircraft_malfunctioning">The aircraft is malfunctioning and cannot be executed</string>
 
     <string name="fc_max_height">max fly height</string>
     <string name="fc_max_range">max fly range</string>
@@ -117,5 +118,6 @@
     <string name="camera_display_mode_ir">Infrared</string>
     <string name="camera_display_mode_pip">Picture in Picture</string>
     <string name="title_activity_serial_aidl">SerialAidlActivity</string>
+    <string name="mission_current_state_cannot_execute">Current state cannot be executed</string>
 
 </resources>

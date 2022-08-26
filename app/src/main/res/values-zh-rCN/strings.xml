@@ -37,6 +37,7 @@
     <string name="mission_alititude">高度</string>
     <string name="mission_hover_time">停留时间</string>
     <string name="mission_yes">确定</string>
+    <string name="mission_aircraft_malfunctioning">飞行器故障，不能执行</string>
 
     <string name="fc_max_height">飞行最大高度</string>
     <string name="fc_max_range">飞行最远范围</string>
@@ -110,4 +111,5 @@
     <string name="camera_display_mode_ir">红外</string>
     <string name="camera_display_mode_pip">画中画</string>
 
+    <string name="mission_current_state_cannot_execute">当前状态，不能执行</string>
 </resources>

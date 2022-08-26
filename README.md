@@ -5,3 +5,15 @@
 adb remount
 adb push app-release_basestation.apk目录 /system/app/
 adb reboot
+
+
+(English) :
+
+# DragonFish_SDK_Sample
+
+Description:
+Before using the SDK, you need to copy the app-release_basestation.apk in the root directory to the system/app directory of the tablet, restart the tablet, and then run this project
+adb remount
+adb push app-release_basestation.apk directory/system/ app/
+adb reboot
+

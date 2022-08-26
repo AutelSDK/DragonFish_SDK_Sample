@@ -485,7 +485,7 @@ public class DFWayPointActivity extends AppCompatActivity implements View.OnClic
             break;
             case R.id.prepare: {
                 if (!isDroneOk) {
-                    Toast.makeText(DFWayPointActivity.this, "飞行器故障，不能执行", Toast.LENGTH_LONG).show();
+                    Toast.makeText(DFWayPointActivity.this, R.string.mission_aircraft_malfunctioning, Toast.LENGTH_LONG).show();
                     return;
                 }
 
@@ -495,7 +495,7 @@ public class DFWayPointActivity extends AppCompatActivity implements View.OnClic
 
             case R.id.start: {
                 if (flyState != FlyState.Prepare) {
-                    Toast.makeText(DFWayPointActivity.this, "当前状态，不能执行", Toast.LENGTH_LONG).show();
+                    Toast.makeText(DFWayPointActivity.this, R.string.mission_current_state_cannot_execute, Toast.LENGTH_LONG).show();
                     return;
                 }
                 if (null != missionManager) {
@@ -519,7 +519,7 @@ public class DFWayPointActivity extends AppCompatActivity implements View.OnClic
 
             case R.id.pause: {
                 if (flyState != FlyState.Start) {
-                    Toast.makeText(DFWayPointActivity.this, "当前状态，不能执行", Toast.LENGTH_LONG).show();
+                    Toast.makeText(DFWayPointActivity.this, getString(R.string.mission_current_state_cannot_execute), Toast.LENGTH_LONG).show();
                     return;
                 }
                 if (null != missionManager) {
@@ -541,7 +541,7 @@ public class DFWayPointActivity extends AppCompatActivity implements View.OnClic
 
             case R.id.resume: {
                 if (flyState != FlyState.Pause) {
-                    Toast.makeText(DFWayPointActivity.this, "当前状态，不能执行", Toast.LENGTH_LONG).show();
+                    Toast.makeText(DFWayPointActivity.this, getString(R.string.mission_current_state_cannot_execute), Toast.LENGTH_LONG).show();
                     return;
                 }
                 if (null != missionManager) {
@@ -563,7 +563,7 @@ public class DFWayPointActivity extends AppCompatActivity implements View.OnClic
 
             case R.id.cancel: {
                 if (flyState == FlyState.None) {
-                    Toast.makeText(DFWayPointActivity.this, "当前状态，不能执行", Toast.LENGTH_LONG).show();
+                    Toast.makeText(DFWayPointActivity.this, getString(R.string.mission_current_state_cannot_execute), Toast.LENGTH_LONG).show();
                     return;
                 }
                 if (null != missionManager) {
@@ -584,7 +584,7 @@ public class DFWayPointActivity extends AppCompatActivity implements View.OnClic
 
             case R.id.download: {
                 if (flyState == FlyState.None) {
-                    Toast.makeText(DFWayPointActivity.this, "当前状态，不能执行", Toast.LENGTH_LONG).show();
+                    Toast.makeText(DFWayPointActivity.this, getString(R.string.mission_current_state_cannot_execute), Toast.LENGTH_LONG).show();
                     return;
                 }
                 if (null != missionManager) {
@@ -638,7 +638,7 @@ public class DFWayPointActivity extends AppCompatActivity implements View.OnClic
 
     private void doPrepare() {
         if (flyState != FlyState.None) {
-            Toast.makeText(DFWayPointActivity.this, "当前状态，不能执行", Toast.LENGTH_LONG).show();
+            Toast.makeText(DFWayPointActivity.this, getString(R.string.mission_current_state_cannot_execute), Toast.LENGTH_LONG).show();
             return;
         }
         if (null != missionManager) {
