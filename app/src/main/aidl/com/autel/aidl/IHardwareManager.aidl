@@ -17,7 +17,6 @@ interface IHardwareManager {
     //连接wifi
     void connect(in WIFiScanResult ssid,String pwd);
     //监听平板按键消息事件
-    //监听平板按键消息事件
     void addSerialKeystrokeListener(ISerialKeystrokeListener listener);
     //监听5.8g连接状态消息
     void addSerialG5_8StatusListener(ISerialG5_8StatusListener listener);

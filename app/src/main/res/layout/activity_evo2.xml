@@ -139,7 +139,7 @@
                     android:background="@drawable/text_background"
                     android:gravity="center"
                     android:padding="@dimen/text_padding"
-                    android:text="Evo2 Mission" />
+                    android:text="DF Mission" />
                 <View
                     android:layout_width="5dp"
                     android:layout_height="match_parent" />
@@ -193,6 +193,7 @@
                     android:layout_weight="1"
                     android:background="@drawable/text_background"
                     android:gravity="center"
+                    android:visibility="gone"
                     android:padding="@dimen/text_padding"
                     android:text="RTK" />
             </LinearLayout>

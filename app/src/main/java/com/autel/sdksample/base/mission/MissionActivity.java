@@ -28,7 +28,7 @@ public class MissionActivity extends AppCompatActivity {
     }
 
     public void aMap(View view) {
-        startActivity(new Intent(this, AMapMissionActivity.class));
+//        startActivity(new Intent(this, AMapMissionActivity.class));
     }
 
     private boolean isGoogleMapValidate() {
