@@ -33,7 +33,7 @@ public class DFLayout {
         mLayout.findViewById(R.id.rcTest).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                mContext.startActivity(new Intent(mContext, G2RemoteControllerActivity.class));
+                mContext.startActivity(new Intent(mContext, DFRCActivity.class));
             }
         });
         mLayout.findViewById(R.id.fcTest).setOnClickListener(new View.OnClickListener() {
@@ -57,7 +57,7 @@ public class DFLayout {
         mLayout.findViewById(R.id.DSPTest).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                mContext.startActivity(new Intent(mContext, Evo2DspActivity.class));
+                mContext.startActivity(new Intent(mContext, DFDspActivity.class));
             }
         });
         mLayout.findViewById(R.id.missionTest).setOnClickListener(new View.OnClickListener() {
@@ -83,7 +83,7 @@ public class DFLayout {
         mLayout.findViewById(R.id.GimbalTest).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                mContext.startActivity(new Intent(mContext, Evo2GimbalActivity.class));
+                mContext.startActivity(new Intent(mContext, DFGimbalActivity.class));
             }
         });
         mLayout.findViewById(R.id.AlbumTest).setOnClickListener(new View.OnClickListener() {

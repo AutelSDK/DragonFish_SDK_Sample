@@ -22,6 +22,15 @@
         <activity android:name=".dragonfish.LivePushActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:screenOrientation="landscape" />
+        <activity android:name=".dragonfish.DFGimbalActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:screenOrientation="landscape" />
+        <activity android:name=".dragonfish.DFDspActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:screenOrientation="landscape" />
+        <activity android:name=".dragonfish.DFRCActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:screenOrientation="landscape" />
         <activity
             android:name=".dragonfish.SerialAidlActivity"
             android:label="@string/title_activity_serial_aidl" />
