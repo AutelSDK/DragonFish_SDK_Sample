@@ -25,6 +25,7 @@ import com.autel.common.mission.RealTimeInfo;
 import com.autel.common.mission.xstar.OrbitMission;
 import com.autel.common.mission.xstar.Waypoint;
 import com.autel.common.mission.xstar.WaypointMission;
+import com.autel.sdk.battery.CruiserBattery;
 import com.autel.sdk.mission.MissionManager;
 import com.autel.sdk.product.BaseProduct;
 import com.autel.sdksample.R;
@@ -66,11 +67,10 @@ public class MissionOperatorFragment extends Fragment {
         BaseProduct product = ((TestApplication) getActivity().getApplicationContext()).getCurrentProduct();
         if (null != product) {
             switch (product.getType()) {
-//                case X_STAR:
-//                    return ((XStarAircraft) product).getMissionManager();
-//                case PREMIUM:
-//                    return ((XStarPremiumAircraft) product).getMissionManager();
                 case DRAGONFISH:
+                case DRAGONFISH_7_5_VTOL:
+                case DRAGONFISH_15_VTOL:
+                   CruiserBattery battery = (CruiserBattery) product.getBattery();
                     return product.getMissionManager();
             }
 

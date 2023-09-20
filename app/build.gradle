@@ -85,6 +85,5 @@ dependencies {
         exclude module: 'okio'
         exclude module: 'okhttp'
     }
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.tencent.mars:mars-xlog:1.2.5'
 }
