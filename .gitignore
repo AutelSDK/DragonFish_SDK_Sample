@@ -4,3 +4,4 @@
 .gradle
 .idea
 .DS_Store
+local.properties

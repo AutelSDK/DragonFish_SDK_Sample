@@ -19,6 +19,7 @@ import com.autel.sdksample.R;
 import com.autel.sdksample.base.BaseActivity;
 import com.autel.sdksample.base.album.adapter.LocalVideoListAdapter;
 import com.autel.sdksample.base.album.adapter.MediaListAdapter;
+import com.autel.util.log.AutelLog;
 import com.autel.util.okhttp.OkHttpManager;
 import com.autel.util.okhttp.callback.ResponseCallBack;
 
@@ -26,6 +27,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import androidx.annotation.NonNull;
 
@@ -129,7 +131,9 @@ public class AlbumActivity extends BaseActivity<AutelAlbum> {
         findViewById(R.id.getMedia).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mController.getMedia(0, 10, new CallbackWithOneParam<List<MediaInfo>>() {
+
+                //从机载闪存卡获取照片下载列表，每次最多获取50条，如果需要从SD卡获取，调用mController.getMedia()函数即可
+                mController.getFMCMedia(0, 10, new CallbackWithOneParam<List<MediaInfo>>() {
                     @Override
                     public void onFailure(AutelError error) {
                         logOut("getMedia  error  " + error.getDescription());
@@ -156,7 +160,7 @@ public class AlbumActivity extends BaseActivity<AutelAlbum> {
         findViewById(R.id.appendMedia).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mController.getMedia(mediaItems.size() - 1, 50, new CallbackWithOneParam<List<MediaInfo>>() {
+                mController.getFMCMedia(mediaItems.size() - 1, 50, new CallbackWithOneParam<List<MediaInfo>>() {
                     @Override
                     public void onFailure(AutelError error) {
                         logOut("appendMedia  error  " + error.getDescription());
@@ -183,7 +187,7 @@ public class AlbumActivity extends BaseActivity<AutelAlbum> {
         findViewById(R.id.getMedia_Next).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mController.getMedia(index + 1, 50, new CallbackWithOneParam<List<MediaInfo>>() {
+                mController.getFMCMedia(index + 1, 50, new CallbackWithOneParam<List<MediaInfo>>() {
                     @Override
                     public void onFailure(AutelError error) {
                         logOut("getMedia_Next  error  " + error.getDescription());
@@ -212,7 +216,7 @@ public class AlbumActivity extends BaseActivity<AutelAlbum> {
         findViewById(R.id.deleteAllMedia).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mController.deleteMedia(mediaItems, new CallbackWithOneParam<List<MediaInfo>>() {
+                mController.deleteFMCMedia(mediaItems, new CallbackWithOneParam<List<MediaInfo>>() {
                     @Override
                     public void onFailure(AutelError error) {
                         logOut("deleteMedia  error  " + error.getDescription());
@@ -231,7 +235,7 @@ public class AlbumActivity extends BaseActivity<AutelAlbum> {
         findViewById(R.id.deleteMedia).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mController.deleteMedia(deleteMedia, new CallbackWithOneParam<List<MediaInfo>>() {
+                mController.deleteFMCMedia(deleteMedia, new CallbackWithOneParam<List<MediaInfo>>() {
                     @Override
                     public void onFailure(AutelError error) {
                         logOut("deleteMedia  error  " + error.getDescription());
@@ -289,12 +293,12 @@ public class AlbumActivity extends BaseActivity<AutelAlbum> {
     }
 
     private void initLocalFileList() {
-        File dir = new File(Environment.getExternalStorageDirectory().getPath() + "/album/albumtest");
+        File dir = new File(Environment.getExternalStorageDirectory().getPath() + "/album/");
         if (dir.exists()) {
             Log.v("albumtest", "files " + dir.listFiles());
-            if (dir.listFiles() != null) {
-                videoResolutionFromLocalFileAdapter.setRfData(Arrays.asList(dir.listFiles()));
-                videoResolutionFromLocalFileList.setAdapter(videoResolutionFromLocalFileAdapter);
+            if (dir.listFiles() != null && Objects.requireNonNull(dir.listFiles()).length > 0) {
+//                videoResolutionFromLocalFileAdapter.setRfData(Arrays.asList(dir.listFiles()));
+//                videoResolutionFromLocalFileList.setAdapter(videoResolutionFromLocalFileAdapter);
             }
         }
     }
@@ -309,17 +313,25 @@ public class AlbumActivity extends BaseActivity<AutelAlbum> {
                 break;
         }
     }
-
+    private int mediaStorageType = 2;//1:SD卡 2:机载闪存卡
     private void downloadVideo() {
         if (null == okHttpManager) {
             okHttpManager = new OkHttpManager.Builder().build();
         }
         if (null != media2Download) {
             String videoPath = media2Download.getOriginalMedia();
+            String videoName = "Album.video";
             if (!isEmpty(videoPath)) {
-                videoPath = videoPath.substring(videoPath.lastIndexOf("/") + 1, videoPath.length());
+                videoName = videoPath.substring(videoPath.lastIndexOf("/") + 1, videoPath.length());
             }
-            okHttpManager.download(media2Download.getLargeThumbnail(), Environment.getExternalStorageDirectory().getPath() + "/album/albumtest/" + videoPath, new ResponseCallBack<File>() {
+            if (mediaStorageType == 2) {
+                if (videoPath.contains("/DCIM/")) {
+                    videoPath = videoPath.split("/DCIM/")[0] + "/emmc" + "/DCIM/" + videoPath.split("/DCIM/")[1];
+                }
+            }
+            logOut("downloadVideo path " + videoPath);
+            AutelLog.d("downloadVideo path " + videoPath+" videoName->"+videoName);
+            okHttpManager.download(media2Download.getLargeThumbnail(), Environment.getExternalStorageDirectory().getPath() + "/album/" + videoName, new ResponseCallBack<File>() {
                 @Override
                 public void onSuccess(File file) {
                     initLocalFileList();

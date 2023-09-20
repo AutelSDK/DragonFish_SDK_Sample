@@ -16,7 +16,7 @@
             android:layout_marginBottom="@dimen/item_margin_bottom"
             android:gravity="center"
             android:padding="@dimen/text_padding"
-            android:text="getMedia"
+            android:text="getFMCMedia"
             android:textAllCaps="false" />
 
         <Button
@@ -26,7 +26,7 @@
             android:layout_marginBottom="@dimen/item_margin_bottom"
             android:gravity="center"
             android:padding="@dimen/text_padding"
-            android:text="appendMedia"
+            android:text="appendFMCMedia"
             android:textAllCaps="false" />
         <Button
             android:id="@+id/getMedia_Next"
@@ -35,7 +35,7 @@
             android:layout_marginBottom="@dimen/item_margin_bottom"
             android:gravity="center"
             android:padding="@dimen/text_padding"
-            android:text="getMediaNext"
+            android:text="getFMCMediaNext"
             android:textAllCaps="false" />
 
         <Button
@@ -74,6 +74,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/item_margin_bottom"
+            android:visibility="gone"
             android:background="@drawable/text_background"
             android:orientation="horizontal">
 
@@ -119,6 +120,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/item_margin_bottom"
+            android:visibility="gone"
             android:background="@drawable/text_background"
             android:orientation="horizontal">
 

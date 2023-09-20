@@ -1,21 +1,21 @@
 package com.autel.sdksample.base;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.autel.common.error.AutelError;
-import com.autel.common.video.OnRenderFrameInfoListener;
+import com.autel.manager.player.AutelPlayerManager;
+import com.autel.manager.player.autelplayer.AutelPlayer;
+import com.autel.manager.player.autelplayer.AutelPlayerView;
 import com.autel.sdk.product.BaseProduct;
 import com.autel.sdk.video.AutelCodec;
-import com.autel.sdk.video.AutelCodecListener;
-import com.autel.sdk.widget.AutelCodecView;
 import com.autel.sdksample.R;
+import com.autel.util.log.AutelLog;
 
 public class CodecActivity extends BaseActivity<AutelCodec> {
 
@@ -50,68 +50,64 @@ public class CodecActivity extends BaseActivity<AutelCodec> {
 
     }
 
+
+
+    private AutelPlayerView codecView;
+    private AutelPlayer mAutelPlayer;
+
+    private AutelPlayerView createAutelCodecView() {
+        AutelPlayerView codecView = new AutelPlayerView(this);
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+        );
+        codecView.setLayoutParams(params);
+        return codecView;
+    }
+
     /**
      * Use AutelCodecView to display the video stream from camera simply.
      */
     private void initClick() {
-        findViewById(R.id.testAutelCodecView).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                isCodecing = true;
+        findViewById(R.id.testAutelCodecView).setOnClickListener(v -> {
+            isCodecing = true;
+            stopPlayer();
+            AutelPlayerManager.getInstance().init(CodecActivity.this, false);
+            codecView = createAutelCodecView();
+            content_layout.setOnClickListener(null);
+            content_layout.setVisibility(View.VISIBLE);
+            content_layout.addView(codecView);
+            mAutelPlayer = new AutelPlayer(0);
+            mAutelPlayer.addVideoView(codecView);
+            AutelPlayerManager.getInstance().addAutelPlayer(mAutelPlayer);
+            mAutelPlayer.startPlayer();
+            LinearLayout btn_layout = new LinearLayout(CodecActivity.this);
+            btn_layout.setOrientation(LinearLayout.VERTICAL);
 
-                final AutelCodecView autelCodecView = new AutelCodecView(CodecActivity.this);
-                content_layout.setOnClickListener(null);
-                content_layout.setVisibility(View.VISIBLE);
-                content_layout.addView(autelCodecView);
 
-                LinearLayout btn_layout = new LinearLayout(CodecActivity.this);
-                btn_layout.setOrientation(LinearLayout.VERTICAL);
+            Button btn_pause = new Button(CodecActivity.this);
+            btn_pause.setText("Pause");
+            btn_pause.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    mAutelPlayer.pauseVideo();
+                }
+            });
 
-                Button btn_exp = new Button(CodecActivity.this);
-                btn_exp.setText("Exposure");
-                btn_exp.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        autelCodecView.setOverExposure(!autelCodecView.isOverExposureEnabled(), R.mipmap.expo2560);
-//                        startActivity(new Intent(CodecActivity.this, XStarRemoteControllerActivity.class));
-                    }
-                });
+            Button btn_resume = new Button(CodecActivity.this);
+            btn_resume.setText("Resume");
+            btn_resume.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    mAutelPlayer.resuemeVideo();
+                }
+            });
 
-                Button btn_pause = new Button(CodecActivity.this);
-                btn_pause.setText("Pause");
-                btn_pause.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        autelCodecView.pause();
-                    }
-                });
 
-                Button btn_resume = new Button(CodecActivity.this);
-                btn_resume.setText("Resume");
-                btn_resume.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        autelCodecView.resume();
-                    }
-                });
+            btn_layout.addView(btn_pause);
+            btn_layout.addView(btn_resume);
 
-                Button btn_checkOverExposureEnabled = new Button(CodecActivity.this);
-                btn_checkOverExposureEnabled.setText("isOverExposureEnabled");
-                btn_checkOverExposureEnabled.setAllCaps(false);
-                btn_checkOverExposureEnabled.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        Toast.makeText(CodecActivity.this, "isOverExposureEnabled == " + autelCodecView.isOverExposureEnabled(), Toast.LENGTH_SHORT).show();
-                    }
-                });
-
-                btn_layout.addView(btn_exp);
-                btn_layout.addView(btn_pause);
-                btn_layout.addView(btn_resume);
-                btn_layout.addView(btn_checkOverExposureEnabled);
-
-                content_layout.addView(btn_layout);
-            }
+            content_layout.addView(btn_layout);
         });
 
         /**
@@ -121,32 +117,17 @@ public class CodecActivity extends BaseActivity<AutelCodec> {
             @Override
             public void onClick(View v) {
                 isCodecing = true;
-
+                stopPlayer();
                 final TextView logTV = new TextView(CodecActivity.this);
-                AutelCodecView autelCodecView = new AutelCodecView(CodecActivity.this);
+                AutelPlayerManager.getInstance().init(CodecActivity.this, false);
+                codecView = createAutelCodecView();
                 content_layout.setOnClickListener(null);
                 content_layout.setVisibility(View.VISIBLE);
-                content_layout.addView(autelCodecView);
-                if (null != mController) {
-                    AutelCodecView.setOnRenderFrameInfoListener(new OnRenderFrameInfoListener() {
-                        @Override
-                        public void onRenderFrameTimestamp(long l) {
-
-                        }
-
-                        @Override
-                        public void onRenderFrameSizeChanged(int width, int height) {
-                            logOut("width:"+width+" height:"+height);
-                        }
-
-                        @Override
-                        public void onFrameStream(final byte[] videoBuffer, final boolean isIFrame, final int size, final long pts) {
-                            Log.d("onFrameStream", " onFrameStream size " + size);
-                            if (null == videoBuffer) return;
-                            logOut("isValid == " + (videoBuffer.length == size) + "\nisIFrame == " + isIFrame + "\nsize == " + size + "\npts == " + pts);
-                        }
-                    });
-                }
+                content_layout.addView(codecView);
+                mAutelPlayer = new AutelPlayer(0);
+                mAutelPlayer.addVideoView(codecView);
+                AutelPlayerManager.getInstance().addAutelPlayer(mAutelPlayer);
+                mAutelPlayer.startPlayer();
             }
         });
     }
@@ -159,12 +140,7 @@ public class CodecActivity extends BaseActivity<AutelCodec> {
 
             content_layout.removeAllViews();
             content_layout.setVisibility(View.GONE);
-
-            if (null != mController) {
-                mController.cancel();
-                mController.setCodecListener(null, null);
-            }
-
+            stopPlayer();
             return;
         }
 
@@ -173,6 +149,17 @@ public class CodecActivity extends BaseActivity<AutelCodec> {
 
     public void onDestroy() {
         super.onDestroy();
-        AutelCodecView.setOnRenderFrameInfoListener(null);
+        stopPlayer();
+    }
+
+    private void stopPlayer(){
+        AutelLog.debug_i("initCodec","stopPlayer  codecBase ");
+        if(null != mAutelPlayer){
+            mAutelPlayer.removeVideoView();
+            AutelPlayerManager.getInstance().removeAutelPlayer(mAutelPlayer);
+            mAutelPlayer.stopPlayer();
+            mAutelPlayer.releasePlayer();
+
+        }
     }
 }

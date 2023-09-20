@@ -13,6 +13,7 @@ import com.autel.common.battery.cruiser.CruiserBatteryInfo;
 import com.autel.common.error.AutelError;
 import com.autel.common.flycontroller.AutoSafeState;
 import com.autel.common.flycontroller.FlightErrorState;
+import com.autel.common.flycontroller.FlyMode;
 import com.autel.common.flycontroller.ModelType;
 import com.autel.common.flycontroller.SafeCheck;
 import com.autel.common.flycontroller.cruiser.CruiserFlyControllerInfo;
@@ -35,11 +36,13 @@ import com.autel.sdk.mission.MissionManager;
 import com.autel.sdk.product.BaseProduct;
 import com.autel.sdk.remotecontroller.AutelRemoteController;
 import com.autel.sdk10.utils.BytesUtils;
+import com.autel.sdksample.PhoneBatteryManager;
 import com.autel.sdksample.R;
 import com.autel.sdksample.TestApplication;
 import com.autel.sdksample.base.util.FileUtils;
 import com.autel.sdksample.dragonfish.rxrunnable.IOUiRunnable;
 import com.autel.util.log.AutelLog;
+import com.autel.video.NetWorkProxyJni;
 
 import java.io.File;
 import java.util.Arrays;
@@ -57,11 +60,11 @@ public class DFWayPointActivity extends AppCompatActivity implements View.OnClic
     private static final String TAG = "DFWayPointActivity";
     private CruiserWaypointMission autelMission;
     private CruiserFlyController mEvoFlyController;
+    private FlyMode flyMode = FlyMode.UNKNOWN;
     private CruiserBattery battery;
-    private AutelRemoteController remoteController;
     private MissionManager missionManager;
-//    private float lowBatteryPercent = 15f;
-//    private boolean isBatteryOk = false; //当前电量是否合适
+    private float lowBatteryPercent = 15f;
+    private boolean isBatteryOk = false; //当前电量是否合适
 //    private boolean isCompassOk = false; //当前指南针状态是否OK
 //    private boolean isImuOk = false; //当前IMU是否OK
 //    private boolean isGpsOk = false; //当前gps是否OK
@@ -90,8 +93,10 @@ public class DFWayPointActivity extends AppCompatActivity implements View.OnClic
         setContentView(R.layout.activity_evo2_waypoint);
 
         BaseProduct product = ((TestApplication) getApplicationContext()).getCurrentProduct();
-        if (null != product && product.getType() == AutelProductType.DRAGONFISH) {
+        if (null != product
+                && (product.getType() != AutelProductType.UNKNOWN)) {
             missionManager = product.getMissionManager();
+            //设置任务执行时实时任务数据状态监听
             missionManager.setRealTimeInfoListener(new CallbackWithOneParam<RealTimeInfo>() {
                 @Override
                 public void onSuccess(RealTimeInfo realTimeInfo) {
@@ -119,11 +124,12 @@ public class DFWayPointActivity extends AppCompatActivity implements View.OnClic
 
                 }
             });
+            //监听飞机电池电量变化
             battery.setBatteryStateListener(new CallbackWithOneParam<CruiserBatteryInfo>() {
                 @Override
                 public void onSuccess(CruiserBatteryInfo batteryState) {
-                    AutelLog.d(" batteryState " + batteryState.getRemainingPercent());
-//                    isBatteryOk = batteryState.getRemainingPercent() > lowBatteryPercent;
+                    AutelLog.d(" batteryState uav battery-> " + batteryState.getRemainingPercent());
+//                    isBatteryOk = batteryState.getRemainingPercent() > 15;
                 }
 
                 @Override
@@ -131,24 +137,34 @@ public class DFWayPointActivity extends AppCompatActivity implements View.OnClic
 
                 }
             });
+            //监听遥控器电量变化
+            PhoneBatteryManager.getInstance().addBatteryChangeListener(TAG,
+                    (current, total) -> {
+                        AutelLog.debug_i(TAG, "pad battery-> " + current );
+                        isBatteryOk = current > 15;
+                    }
+            );
 
             mEvoFlyController = (CruiserFlyController) product.getFlyController();
             mEvoFlyController.setFlyControllerInfoListener(new CallbackWithOneParam<CruiserFlyControllerInfo>() {
 
                 @Override
                 public void onSuccess(CruiserFlyControllerInfo evoFlyControllerInfo) {
+                    flyMode = evoFlyControllerInfo.getFlyControllerStatus().getFlyMode();
 //                    isCompassOk = evoFlyControllerInfo.getFlyControllerStatus().isCompassValid();
 //                    isCanTakeOff = evoFlyControllerInfo.getFlyControllerStatus().isCanTakeOff();
 //
 //                    isImuOk = evoFlyControllerInfo.getFlyControllerStatus().isIMU0Valid() && evoFlyControllerInfo.getFlyControllerStatus().isIMU1Valid();
 //
 //                    isGpsOk = evoFlyControllerInfo.getFlyControllerStatus().isGpsValid();
+                    AutelLog.d(TAG,"setFlyControllerInfoListener flyMode->"+flyMode);
                     if (null != evoFlyControllerInfo && null != evoFlyControllerInfo.getFlyControllerStatus()) {
                         SafeCheck safeCheck = evoFlyControllerInfo.getFlyControllerStatus().getSafeCheck();
                         //飞行器自检完成
                         if (safeCheck == SafeCheck.COMPLETE) {
                             if (!isDroneCheckFinish) {
                                 isDroneCheckFinish = true;
+                                //查询自检结果
                                 getAutoCheckResult(ModelType.ALL);
                             }
                         }
@@ -163,18 +179,6 @@ public class DFWayPointActivity extends AppCompatActivity implements View.OnClic
                 }
             });
 
-            remoteController = product.getRemoteController();
-            remoteController.setInfoDataListener(new CallbackWithOneParam<RemoteControllerInfo>() {
-                @Override
-                public void onSuccess(RemoteControllerInfo remoteControllerInfo) {
-//                    isImageTransOk = remoteControllerInfo.getDSPPercentage() >= 30;
-                }
-
-                @Override
-                public void onFailure(AutelError autelError) {
-
-                }
-            });
         }
         writeMissionTestData = (Button) findViewById(R.id.writeMissionTestData);
         testWaypoint = (Button) findViewById(R.id.testWaypoint);
@@ -352,6 +356,7 @@ public class DFWayPointActivity extends AppCompatActivity implements View.OnClic
                     waypointLen, waypointParamList,
                     poiPointLen, poiParamList, linkPoints, isEnableTopographyFollow ? 1 : 0);
             AutelLog.d("NativeHelper", " writeMissionFile result -> " + res);
+            Toast.makeText(this, "writeMissionFile result -> " + res, Toast.LENGTH_SHORT).show();
         });
 
         testWaypoint.setOnClickListener(v -> {
@@ -401,6 +406,7 @@ public class DFWayPointActivity extends AppCompatActivity implements View.OnClic
             AutelLog.debug_i("NativeHelper:", "flyTime = " + flyTime
                     + ", flyLength = " + flyLength + ", picNum = " + pictNum
                     + ",errorCode = " + errorCode);
+            Toast.makeText(this, "testWaypoint result -> " + errorCode, Toast.LENGTH_SHORT).show();
 
         });
         testMapping.setOnClickListener(v -> {
@@ -461,7 +467,7 @@ public class DFWayPointActivity extends AppCompatActivity implements View.OnClic
             List<AutelCoordinate3D> plusList = result.getPlusList();//两个航点间加号的纬度、经度
 
             AutelLog.d("NativeHelper", " result " + result.getArea() + " " + result.getErrorCode());
-
+            Toast.makeText(this, "testMapping result -> " + result.getErrorCode(), Toast.LENGTH_SHORT).show();
         });
     }
 
@@ -479,7 +485,7 @@ public class DFWayPointActivity extends AppCompatActivity implements View.OnClic
         switch (id) {
             case R.id.autoCheck: {
                 //飞行之前，必须进行必要的飞行检查，自检结果会在自检完成后通过 getAutoCheckResult()查询
-
+                AutelLog.debug_i(TAG,"autoCheck start ");
                 autoCheck(ModelType.ALL);
             }
             break;
@@ -637,12 +643,13 @@ public class DFWayPointActivity extends AppCompatActivity implements View.OnClic
     }
 
     private void doPrepare() {
-        if (flyState != FlyState.None) {
-            Toast.makeText(DFWayPointActivity.this, "当前状态，不能执行", Toast.LENGTH_LONG).show();
+        if(flyMode != FlyMode.DISARM) {
+            Toast.makeText(DFWayPointActivity.this, "当前飞行模式，不能执行", Toast.LENGTH_LONG).show();
             return;
         }
         if (null != missionManager) {
-            missionManager.prepareMission(autelMission, filePath, new CallbackWithOneParamProgress<Boolean>() {
+            autelMission.localMissionFilePath = filePath;
+            missionManager.prepareMission(autelMission, new CallbackWithOneParamProgress<Boolean>() {
                 @Override
                 public void onProgress(float v) {
                     AutelLog.d(TAG, " prepareMission onProgress " + v);

@@ -23,7 +23,9 @@ import com.autel.common.flycontroller.FlightErrorState;
 import com.autel.common.flycontroller.FlyControllerParameterRangeManager;
 import com.autel.common.flycontroller.FlyControllerVersionInfo;
 import com.autel.common.flycontroller.LedPilotLamp;
+import com.autel.common.flycontroller.LightState;
 import com.autel.common.flycontroller.MagnetometerState;
+import com.autel.common.flycontroller.NavigationControlLight;
 import com.autel.sdk.flycontroller.AutelFlyController;
 import com.autel.sdksample.R;
 
@@ -41,7 +43,7 @@ public abstract class FlyControllerActivity extends BaseActivity<AutelFlyControl
     protected Switch attiModeSwitch;
     protected Spinner fcLedPilotLamp;
 
-    protected LedPilotLamp ledPilotLamp = LedPilotLamp.ALL_OFF;
+    protected NavigationControlLight ledPilotLamp = new NavigationControlLight();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,16 +81,24 @@ public abstract class FlyControllerActivity extends BaseActivity<AutelFlyControl
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 switch (position) {
                     case 0:
-                        ledPilotLamp = LedPilotLamp.ALL_OFF;
+                        ledPilotLamp.setValid(true);
+                        ledPilotLamp.getAll().setState(LightState.OFF);
                         break;
                     case 1:
-                        ledPilotLamp = LedPilotLamp.BACK_ONLY;
+                        ledPilotLamp.setValid(false);
+                        ledPilotLamp.getAfter().setState(LightState.ON);
                         break;
                     case 2:
-                        ledPilotLamp = LedPilotLamp.FRONT_ONLY;
+                        ledPilotLamp.setValid(false);
+                        ledPilotLamp.getLeft().setState(LightState.ON);
                         break;
                     case 3:
-                        ledPilotLamp = LedPilotLamp.ALL_ON;
+                        ledPilotLamp.setValid(false);
+                        ledPilotLamp.getRight().setState(LightState.ON);
+                        break;
+                    case 4:
+                        ledPilotLamp.setValid(true);
+                        ledPilotLamp.getAll().setState(LightState.ON);
                         break;
                 }
             }

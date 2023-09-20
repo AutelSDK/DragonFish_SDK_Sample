@@ -27,6 +27,10 @@ import com.autel.common.remotecontroller.TeachingMode;
 import com.autel.sdk.remotecontroller.AutelRemoteController;
 import com.autel.sdksample.R;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+
 
 public abstract class RemoteControllerActivity extends BaseActivity<AutelRemoteController> {
     final static String TAG = RemoteControllerActivity.class.getSimpleName();
@@ -480,19 +484,42 @@ public abstract class RemoteControllerActivity extends BaseActivity<AutelRemoteC
             }
         });
     }
-
+    public static final String PAD_SERIALNUMBER_PATH = "/efs/.SnFile";
+    /**
+     * 读取本地文件转字符串
+     */
+    public static String readFileToString(String path) {
+        StringBuilder sb = new StringBuilder();
+        InputStream is = null;
+        try {
+            File file = new File(path);
+            if (!file.exists()) {
+                return sb.toString();
+            }
+            is = new FileInputStream(file);
+            byte[] buffer = new byte[4 * 1024];
+            int len;
+            while ((len = is.read(buffer)) != -1) {
+                sb.append(new String(buffer, 0, len));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return sb.toString();
+        } finally {
+            try {
+                if (is != null) {
+                    is.close();
+                }
+            } catch (Exception ignored) {
+               ignored.printStackTrace();
+            }
+        }
+        return sb.toString();
+    }
     public void getSerialNumber(View view) {
-        mController.getSerialNumber(new CallbackWithOneParam<String>() {
-            @Override
-            public void onSuccess(String serialNumber) {
-                logOut("getSerialNumber onSuccess " + serialNumber);
-            }
-
-            @Override
-            public void onFailure(AutelError autelError) {
-                logOut("getSerialNumber onFailure : " + autelError.getDescription());
-            }
-        });
+        //需要系统签名才能读取，否则会报错
+        String serialNumber = readFileToString(PAD_SERIALNUMBER_PATH);
+        logOut("getSerialNumber serialNumber " + serialNumber);
     }
 
 

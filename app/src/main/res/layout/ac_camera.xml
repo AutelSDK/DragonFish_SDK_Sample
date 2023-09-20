@@ -5,10 +5,12 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <com.autel.sdk.widget.AutelCodecView
-        android:id="@+id/codecView"
+    <FrameLayout
+        android:id="@+id/contentCodec"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:visibility="visible"
+        tools:visibility="visible" />
 
 
     <FrameLayout

@@ -81,8 +81,9 @@
     <string name="fc_beginner_off">disabled</string>
 
     <string name="fc_led_pilot_lamp_all_off">ALL_OFF</string>
-    <string name="fc_led_pilot_lamp_back_only">BACK_ONLY</string>
-    <string name="fc_led_pilot_lamp_front_only">FRONT_ONLY</string>
+    <string name="fc_led_pilot_lamp_back_only">BACK</string>
+    <string name="fc_led_pilot_lamp_left">LEFT</string>
+    <string name="fc_led_pilot_lamp_right">RIGHT</string>
     <string name="fc_led_pilot_lamp_all_on">ALL_ON</string>
 
     <!--  camera controller controller -->

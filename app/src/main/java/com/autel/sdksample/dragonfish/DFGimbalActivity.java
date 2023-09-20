@@ -26,7 +26,7 @@ import com.autel.sdksample.base.gimbal.GimbalActivity;
  */
 
 public class DFGimbalActivity extends GimbalActivity {
-    private CruiserGimbal mXStarCruiserGimbal;
+    private CruiserGimbal cruiserGimbal;
     private EditText gimbalAnglePitch;
     private EditText gimbalAngleRoll;
     private EditText gimbalAngleYaw;
@@ -38,14 +38,14 @@ public class DFGimbalActivity extends GimbalActivity {
 
     @Override
     protected AutelGimbal initController(BaseProduct product) {
-        mXStarCruiserGimbal = ((CruiserAircraft) product).getGimbal();
-        return mXStarCruiserGimbal;
+        cruiserGimbal = ((CruiserAircraft) product).getGimbal();
+        return cruiserGimbal;
     }
 
     @Override
     protected int getCustomViewResId() {
 //        return R.layout.ac_base_gimbal;
-        return R.layout.activity_g2_gimbal;
+        return R.layout.activity_df_gimbal;
     }
 
     @Override
@@ -60,7 +60,7 @@ public class DFGimbalActivity extends GimbalActivity {
         findViewById(R.id.setGimbalAngleListener).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mXStarCruiserGimbal.setAngleListener(new CallbackWithOneParam<EvoAngleInfo>() {
+                cruiserGimbal.setAngleListener(new CallbackWithOneParam<EvoAngleInfo>() {
 
                     @Override
                     public void onSuccess(EvoAngleInfo data) {
@@ -77,13 +77,13 @@ public class DFGimbalActivity extends GimbalActivity {
         findViewById(R.id.resetGimbalAngleListener).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mXStarCruiserGimbal.setAngleListener(null);
+                cruiserGimbal.setAngleListener(null);
             }
         });
         findViewById(R.id.getAngleRange).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mXStarCruiserGimbal.getParameterRangeManager().getAngleRange(new CallbackWithOneParam<GimbalAngleRange>() {
+                cruiserGimbal.getParameterRangeManager().getAngleRange(new CallbackWithOneParam<GimbalAngleRange>() {
                     @Override
                     public void onSuccess(GimbalAngleRange data) {
                         logOut("getAngleRange onSuccess " + data);
@@ -112,7 +112,7 @@ public class DFGimbalActivity extends GimbalActivity {
                 angleData.setPitch(pitch);
                 angleData.setRoll(roll);
                 angleData.setYaw(yaw);
-                mXStarCruiserGimbal.setGimbalAngle(pitch,yaw,roll);
+                cruiserGimbal.setGimbalAngle(pitch,yaw,roll);
             }
         });
         findViewById(R.id.setGimbalAngleSpeed).setOnClickListener(new View.OnClickListener() {
@@ -131,7 +131,7 @@ public class DFGimbalActivity extends GimbalActivity {
                 angleSpeed.setPitchSpeed(pitch);
                 angleSpeed.setRollSpeed(roll);
                 angleSpeed.setYawSpeed(yaw);
-                mXStarCruiserGimbal.setGimbalAngleWithSpeed(pitch,yaw);
+                cruiserGimbal.setGimbalAngleWithSpeed(pitch,yaw);
             }
         });
         gimbalAxisTypeList = (Spinner) findViewById(R.id.gimbalAxisTypeList);
@@ -148,50 +148,55 @@ public class DFGimbalActivity extends GimbalActivity {
         });
         GimbalAxisAdapter axisAdapter = new GimbalAxisAdapter(this);
         gimbalAxisTypeList.setAdapter(axisAdapter);
-        findViewById(R.id.resetGimbalAngle).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.resetGimbalAngle).setOnClickListener(v -> cruiserGimbal.resetGimbalAngle(mGimbalAxis, new CallbackWithNoParam() {
             @Override
-            public void onClick(View v) {
-                mXStarCruiserGimbal.resetGimbalAngle(mGimbalAxis, new CallbackWithNoParam() {
-                    @Override
-                    public void onSuccess() {
-                        logOut("resetGimbalAngle onSuccess ");
-                    }
-
-                    @Override
-                    public void onFailure(AutelError error) {
-                        logOut("resetGimbalAngle onFailure " + error.getDescription());
-                    }
-                });
+            public void onSuccess() {
+                logOut("resetGimbalAngle onSuccess ");
             }
+
+            @Override
+            public void onFailure(AutelError error) {
+                logOut("resetGimbalAngle onFailure " + error.getDescription());
+            }
+        }));
+
+        findViewById(R.id.setRollAdjustData).setOnClickListener(v -> {
+            String value = ((EditText) findViewById(R.id.rollAdjustDataValue)).getText().toString();
+            if ("".equals(value)) {
+                return;
+            }
+
+            cruiserGimbal.setRollAdjustData(Float.valueOf(value));
         });
 
-        findViewById(R.id.setRollAdjustData).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String value = ((EditText) findViewById(R.id.rollAdjustDataValue)).getText().toString();
-                if ("".equals(value)) {
-                    return;
-                }
-
-                mXStarCruiserGimbal.setRollAdjustData(Float.valueOf(value));
+        findViewById(R.id.setPitchAdjustData).setOnClickListener(v -> {
+            String value = ((EditText) findViewById(R.id.pitchAdjustDataValue)).getText().toString();
+            if ("".equals(value)) {
+                return;
             }
+
+            cruiserGimbal.setPitchAdjustData(Float.valueOf(value));
         });
 
-        findViewById(R.id.getRollAdjustData).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mXStarCruiserGimbal.getRollAdjustData(new CallbackWithOneParam<Double>() {
-                    @Override
-                    public void onSuccess(Double data) {
-                        logOut("getRollAdjustData onSuccess "+data);
-                    }
-
-                    @Override
-                    public void onFailure(AutelError error) {
-                        logOut("getRollAdjustData onFailure " + error.getDescription());
-                    }
-                });
+        findViewById(R.id.setYawAdjustData).setOnClickListener(v -> {
+            String value = ((EditText) findViewById(R.id.yawAdjustDataValue)).getText().toString();
+            if ("".equals(value)) {
+                return;
             }
+
+            cruiserGimbal.setYawAdjustData(Float.valueOf(value));
         });
+
+        findViewById(R.id.getRollAdjustData).setOnClickListener(v -> cruiserGimbal.getRollAdjustData(new CallbackWithOneParam<Double>() {
+            @Override
+            public void onSuccess(Double data) {
+                logOut("getRollAdjustData onSuccess "+data);
+            }
+
+            @Override
+            public void onFailure(AutelError error) {
+                logOut("getRollAdjustData onFailure " + error.getDescription());
+            }
+        }));
     }
 }

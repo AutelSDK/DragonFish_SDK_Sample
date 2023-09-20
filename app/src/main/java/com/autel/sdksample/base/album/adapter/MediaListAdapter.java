@@ -16,6 +16,7 @@ import com.autel.downloader.bean.HttpDownloadCallback;
 import com.autel.downloader.utils.DownloadUtils;
 import com.autel.sdksample.R;
 import com.autel.sdksample.base.adapter.SelectorAdapter;
+import com.autel.util.log.AutelLog;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -88,7 +89,7 @@ public class MediaListAdapter extends SelectorAdapter<MediaInfo> implements Http
 
         return mHttpDownloadManager;
     }
-
+    private int mediaStorageType = 2;//1:SD卡 2:机载闪存卡
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         TextView textView = null;
@@ -104,7 +105,13 @@ public class MediaListAdapter extends SelectorAdapter<MediaInfo> implements Http
         convertView.findViewById(R.id.downloadStart).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final String url = elementList.get((int) v.getTag()).getOriginalMedia();
+                String url = elementList.get((int) v.getTag()).getOriginalMedia();
+                if (mediaStorageType == 2) {
+                    if (url.contains("/DCIM/")) {
+                        url = url.split("/DCIM/")[0] + "/emmc" + "/DCIM/" + url.split("/DCIM/")[1];
+                    }
+                }
+                AutelLog.d("Album","downloadStart url = " + url);
                 getHttpDownloadManager(mContext).start(new DownloadTask(url, getSavePath(mContext, url)));
             }
         });
@@ -121,6 +128,7 @@ public class MediaListAdapter extends SelectorAdapter<MediaInfo> implements Http
                 .getTaskInfo(DownloadUtils.getTaskId(originUrl, getSavePath(mContext, originUrl)));
         if (null != task) {
             float percent = (float) task.getReceiveLength() / (float) task.getTotalLength();
+            AutelLog.d("Album","downloadStart percent = " + percent+" len: "+task.getReceiveLength()+" total: "+task.getTotalLength());
             ((TextView) convertView.findViewById(R.id.downloadProgress)).setText(String.valueOf((int) (percent * 100)));
         }
 
@@ -170,6 +178,8 @@ public class MediaListAdapter extends SelectorAdapter<MediaInfo> implements Http
         handler.post(new Runnable() {
             @Override
             public void run() {
+                float percent = (float) receive_length / (float) total_length * 100;
+                AutelLog.d("Album","progress percent = " + percent+" len: "+receive_length+" total: "+total_length);
                 notifyDataSetChanged();
             }
         });
@@ -180,6 +190,7 @@ public class MediaListAdapter extends SelectorAdapter<MediaInfo> implements Http
         handler.post(new Runnable() {
             @Override
             public void run() {
+                AutelLog.d("Album","completed path = " + path);
                 notifyDataSetChanged();
             }
         });

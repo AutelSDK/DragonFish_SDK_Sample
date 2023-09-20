@@ -3,15 +3,27 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-
+<TextView
+    android:id="@+id/waypointInfo"
+    android:textColor="@color/black"
+    android:text="任务上传流程说明：\n1、将任务航线坐标信息通过调用writeMissionTestData函数写入本地文件中
+    \n2、调用AutoCheck按钮，让飞机先进入自检，自检完成后获取自检结果，确认飞机无异常告警后可进入下一步操作，否则终止任务
+    \n3、调用prepare按钮方法将任务上传到飞机
+    \n4、调用Start按钮方法开始任务 任务过程中想取消任务 下发返航goHome指令即可
+    \n5、testWaypoint 航点任务航线规划算法-生成航点任务飞行轨迹航线，用于在地图上渲染实时轨迹航线
+    \n6、testMapping 多边形矩形任务规划算法-生成多边形矩形任务飞行轨迹航线，用于在地图上渲染实时轨迹航线"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"/>
     <Button
         android:id="@+id/autoCheck"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="autoCheck"
         android:layout_margin="@dimen/common_20dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+        app:layout_constraintTop_toBottomOf="@+id/waypointInfo"
+        app:layout_constraintStart_toStartOf="parent"/>
 
     <Button
         android:id="@+id/prepare"
@@ -36,6 +48,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="pause"
+        android:visibility="gone"
         android:layout_margin="@dimen/common_20dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/start"/>
@@ -46,6 +59,7 @@
         android:layout_height="wrap_content"
         android:text="continue"
         android:layout_margin="@dimen/common_20dp"
+        android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/pause"/>
 
@@ -54,6 +68,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="cancel"
+        android:visibility="gone"
         android:layout_margin="@dimen/common_20dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/resume"/>
@@ -63,6 +78,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="download"
+        android:visibility="gone"
         android:layout_margin="@dimen/common_20dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/cancel"/>

@@ -13,7 +13,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/text_background"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:visibility="gone">
 
             <Button
                 android:layout_width="wrap_content"
@@ -44,7 +45,8 @@
             android:onClick="getRCLanguage"
             android:padding="@dimen/text_padding"
             android:text="getLanguage"
-            android:textAllCaps="false" />
+            android:textAllCaps="false"
+            android:visibility="gone" />
 
         <Button
             android:layout_width="wrap_content"
@@ -54,7 +56,8 @@
             android:onClick="enterBinding"
             android:padding="@dimen/text_padding"
             android:text="enterBinding"
-            android:textAllCaps="false" />
+            android:textAllCaps="false"
+            android:visibility="gone" />
 
         <Button
             android:layout_width="wrap_content"
@@ -64,13 +67,15 @@
             android:onClick="exitBinding"
             android:padding="@dimen/text_padding"
             android:text="exitBinding"
-            android:textAllCaps="false" />
+            android:textAllCaps="false"
+            android:visibility="gone" />
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/text_background"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:visibility="gone">
 
             <Button
                 android:layout_width="wrap_content"
@@ -98,13 +103,15 @@
             android:onClick="getRFPower"
             android:padding="@dimen/text_padding"
             android:text="getRFPower"
-            android:textAllCaps="false" />
+            android:textAllCaps="false"
+            android:visibility="gone" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/text_background"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:visibility="gone">
 
             <Button
                 android:layout_width="wrap_content"
@@ -133,14 +140,16 @@
             android:onClick="getTeacherStudentMode"
             android:padding="@dimen/text_padding"
             android:text="getTeachingMode"
-            android:textAllCaps="false" />
+            android:textAllCaps="false"
+            android:visibility="gone" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/item_margin_bottom"
             android:background="@drawable/text_background"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:visibility="gone">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -183,7 +192,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/text_background"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:visibility="gone">
 
             <Button
                 android:layout_width="wrap_content"
@@ -212,13 +222,15 @@
             android:onClick="getRCLengthUnit"
             android:padding="@dimen/text_padding"
             android:text="getLengthUnit"
-            android:textAllCaps="false" />
+            android:textAllCaps="false"
+            android:visibility="gone" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/text_background"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:visibility="gone">
 
             <Button
                 android:layout_width="wrap_content"
@@ -247,13 +259,15 @@
             android:onClick="getRCCommandStickMode"
             android:padding="@dimen/text_padding"
             android:text="getCommandStickMode"
-            android:textAllCaps="false" />
+            android:textAllCaps="false"
+            android:visibility="gone" />
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/text_background"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:visibility="gone">
 
             <TextView
                 android:id="@+id/yawCoefficientRange"
@@ -293,7 +307,8 @@
             android:gravity="center"
             android:onClick="getYawCoefficient"
             android:text="getYawCoefficient"
-            android:textAllCaps="false" />
+            android:textAllCaps="false"
+            android:visibility="gone" />
 
         <Button
             android:layout_width="wrap_content"
@@ -318,7 +333,8 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/item_margin_bottom"
             android:background="@drawable/text_background"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:visibility="gone">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -350,7 +366,8 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/item_margin_bottom"
             android:background="@drawable/text_background"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:visibility="gone">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -376,12 +393,14 @@
                     android:text="reset" />
             </LinearLayout>
         </LinearLayout>
+
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/item_margin_bottom"
             android:background="@drawable/text_background"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:visibility="gone">
 
             <TextView
                 android:id="@+id/dialAdjustSpeedRange"
@@ -409,12 +428,14 @@
                     android:inputType="number" />
             </LinearLayout>
         </LinearLayout>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/item_margin_bottom"
             android:background="@drawable/text_background"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:visibility="gone">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -441,12 +462,14 @@
                     android:text="reset" />
             </LinearLayout>
         </LinearLayout>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/item_margin_bottom"
             android:background="@drawable/text_background"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:visibility="gone">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -464,7 +487,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:onClick="setControlMenuListener"
-                    android:text="setControlMenuListener" />
+                    android:text="set" />
 
                 <Button
                     android:layout_width="wrap_content"

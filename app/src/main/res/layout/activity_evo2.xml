@@ -124,6 +124,7 @@
                     android:layout_weight="1"
                     android:background="@drawable/text_background"
                     android:gravity="center"
+                    android:visibility="gone"
                     android:padding="@dimen/text_padding"
                     android:text="Mission" />
 

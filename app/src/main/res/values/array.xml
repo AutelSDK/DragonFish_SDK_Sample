@@ -60,7 +60,8 @@
     <string-array name="rc_led_pilot_lamp">
         <item>@string/fc_led_pilot_lamp_all_off</item>
         <item>@string/fc_led_pilot_lamp_back_only</item>
-        <item>@string/fc_led_pilot_lamp_front_only</item>
+        <item>@string/fc_led_pilot_lamp_left</item>
+        <item>@string/fc_led_pilot_lamp_right</item>
         <item>@string/fc_led_pilot_lamp_all_on</item>
     </string-array>
 

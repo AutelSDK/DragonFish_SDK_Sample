@@ -13,7 +13,9 @@ import com.autel.common.RangePair;
 import com.autel.common.battery.BatteryParameterRangeManager;
 import com.autel.common.error.AutelError;
 import com.autel.sdk.battery.AutelBattery;
+import com.autel.sdk.battery.CruiserBattery;
 import com.autel.sdk.product.BaseProduct;
+import com.autel.sdk.product.CruiserAircraft;
 import com.autel.sdksample.R;
 
 
@@ -22,16 +24,19 @@ public class BatteryActivity extends BaseActivity<AutelBattery> {
     protected EditText lowBatteryNotifyThreshold;
     protected EditText criticalBatteryNotifyThreshold;
     protected EditText dischargeDay;
-
+    protected static final int BATTERY_NUM1 = 1; //电池1
+    protected static final int BATTERY_NUM2 = 2; //电池2
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setTitle("Battery");
     }
 
+    private CruiserBattery cruiserBattery;
     @Override
     protected AutelBattery initController(BaseProduct product) {
-        return product.getBattery();
+        cruiserBattery = ((CruiserAircraft) product).getBattery();
+        return cruiserBattery;
     }
 
     @Override
@@ -183,88 +188,7 @@ public class BatteryActivity extends BaseActivity<AutelBattery> {
                 });
             }
         });
-        findViewById(R.id.getDischargeDay).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mController.getDischargeDay(new CallbackWithOneParam<Integer>() {
-                    @Override
-                    public void onFailure(AutelError error) {
-                        logOut("getDischargeDay  error :  " + error.getDescription());
-                    }
 
-                    @Override
-                    public void onSuccess(Integer data) {
-                        logOut("getDischargeDay  data :  " + data);
-                    }
-                });
-            }
-        });
-        findViewById(R.id.setDischargeDay).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String value = dischargeDay.getText().toString();
-                mController.setDischargeDay(isEmpty(value) ? 2 : Integer.valueOf(value), new CallbackWithNoParam() {
-                    @Override
-                    public void onSuccess() {
-
-                        logOut("setDischargeDay  onSuccess  ");
-                    }
-
-                    @Override
-                    public void onFailure(AutelError autelError) {
-                        logOut("setDischargeDay  error :  " + autelError.getDescription());
-                    }
-                });
-            }
-        });
-        findViewById(R.id.getDischargeCount).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mController.getDischargeCount(new CallbackWithOneParam<Integer>() {
-                    @Override
-                    public void onSuccess(Integer data) {
-                        logOut("getDischargeCount  " + data);
-                    }
-
-                    @Override
-                    public void onFailure(AutelError error) {
-                        logOut("getDischargeCount error : " + error.getDescription());
-                    }
-                });
-            }
-        });
-        findViewById(R.id.getVersion).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mController.getVersion(new CallbackWithOneParam<String>() {
-                    @Override
-                    public void onSuccess(String data) {
-                        logOut("getVersion  " + data);
-                    }
-
-                    @Override
-                    public void onFailure(AutelError error) {
-                        logOut("getVersion  error : " + error.getDescription());
-                    }
-                });
-            }
-        });
-        findViewById(R.id.getSerialNumber).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mController.getSerialNumber(new CallbackWithOneParam<String>() {
-                    @Override
-                    public void onSuccess(String data) {
-                        logOut("getSerialNumber  " + data);
-                    }
-
-                    @Override
-                    public void onFailure(AutelError error) {
-                        logOut("getSerialNumber  error : " + error.getDescription());
-                    }
-                });
-            }
-        });
         findViewById(R.id.getFullChargeCapacity).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

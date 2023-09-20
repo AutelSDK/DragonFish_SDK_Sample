@@ -95,7 +95,7 @@ public abstract class GimbalActivity extends BaseActivity<AutelGimbal> {
                 mController.getVersionInfo(new CallbackWithOneParam<GimbalVersionInfo>() {
                     @Override
                     public void onSuccess(GimbalVersionInfo gimbalVersionInfo) {
-                        logOut("getVersionInfo onSuccess {" + gimbalVersionInfo + "}");
+                        logOut("getVersionInfo onSuccess {" + gimbalVersionInfo + "} version: "+gimbalVersionInfo.getGimbalVersion());
                     }
 
                     @Override

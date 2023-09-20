@@ -53,6 +53,7 @@
         android:textAllCaps="false" />
 
     <LinearLayout
+        android:visibility="gone"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/item_margin_bottom"
@@ -94,6 +95,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/item_margin_bottom"
         android:gravity="center"
+        android:visibility="gone"
         android:padding="@dimen/text_padding"
         android:text="getCriticalBatteryNotifyThreshold"
         android:textAllCaps="false" />
@@ -175,6 +177,7 @@
         android:textAllCaps="false" />
 
     <Button
+        android:visibility="gone"
         android:id="@+id/getFullChargeCapacity"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -189,6 +192,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/item_margin_bottom"
         android:gravity="center"
+        android:visibility="gone"
         android:padding="@dimen/text_padding"
         android:text="getCellVoltageRange"
         android:textAllCaps="false" />

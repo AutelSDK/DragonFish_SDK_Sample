@@ -13,6 +13,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/item_margin_bottom"
+            android:visibility="gone"
             android:background="@drawable/text_background"
             android:orientation="horizontal">
 
@@ -35,6 +36,7 @@
 
 
         <Button
+            android:visibility="gone"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/item_margin_bottom"
@@ -145,6 +147,7 @@
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:visibility="gone"
                 android:layout_marginBottom="@dimen/item_margin_bottom"
                 android:orientation="horizontal">
 
@@ -170,6 +173,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center"
+            android:visibility="gone"
             android:onClick="getReturnHeight"
             android:text="getReturnHeight"
             android:textAllCaps="false" />
@@ -177,6 +181,7 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:visibility="gone"
             android:layout_marginBottom="@dimen/item_margin_bottom"
             android:background="@drawable/text_background"
             android:orientation="vertical">
@@ -212,6 +217,7 @@
 
 
         <Button
+            android:visibility="gone"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/item_margin_bottom"
@@ -224,6 +230,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/item_margin_bottom"
+            android:visibility="gone"
             android:background="@drawable/text_background"
             android:orientation="horizontal">
 
@@ -256,6 +263,7 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:visibility="gone"
             android:layout_marginBottom="@dimen/item_margin_bottom"
             android:background="@drawable/text_background"
             android:orientation="horizontal">
@@ -275,6 +283,7 @@
         </LinearLayout>
 
         <Button
+            android:visibility="gone"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/item_margin_bottom"
@@ -330,6 +339,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/item_margin_bottom"
             android:gravity="center"
+            android:visibility="gone"
             android:onClick="takeOff"
             android:text="takeOff"
             android:textAllCaps="false" />
@@ -357,6 +367,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/item_margin_bottom"
             android:gravity="center"
+            android:visibility="gone"
             android:onClick="cancelReturn"
             android:text="cancelReturn"
             android:textAllCaps="false" />
@@ -367,6 +378,7 @@
             android:layout_marginBottom="@dimen/item_margin_bottom"
             android:gravity="center"
             android:onClick="cancelLand"
+            android:visibility="gone"
             android:text="cancelLand"
             android:textAllCaps="false" />
 
@@ -375,6 +387,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/item_margin_bottom"
             android:gravity="center"
+            android:visibility="gone"
             android:onClick="setAircraftLocationAsHomePoint"
             android:text="setAircraftLocationAsHomePoint"
             android:textAllCaps="false" />
@@ -439,6 +452,7 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:visibility="gone"
             android:layout_marginBottom="@dimen/item_margin_bottom"
             android:background="@drawable/text_background"
             android:orientation="vertical">

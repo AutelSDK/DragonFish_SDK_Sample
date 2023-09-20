@@ -1130,37 +1130,30 @@ public class CameraDFFragment extends CameraBaseFragment {
             }
         });
 
-        view.findViewById(R.id.getPIVMode).setOnClickListener(new View.OnClickListener() {
+        view.findViewById(R.id.getPIVMode);
+        view.setOnClickListener(v -> xt701.getPIVMode(new CallbackWithOneParam<PIVMode>() {
             @Override
-            public void onClick(View v) {
-                xt701.getPIVMode(new CallbackWithOneParam<PIVMode>() {
-                    @Override
-                    public void onFailure(AutelError error) {
-                        logOut("getPIVMode  description  " + error.getDescription());
-                    }
-
-                    @Override
-                    public void onSuccess(PIVMode mode) {
-                        logOut("getPIVMode onSuccess " + mode);
-                    }
-                });
+            public void onSuccess(PIVMode pivMode) {
+                logOut("getPIVMode  " + pivMode);
             }
-        });
-        view.findViewById(R.id.setPIVMode).setOnClickListener(new View.OnClickListener() {
+
             @Override
-            public void onClick(View v) {
-                xt701.setPIVMode(pivMode, new CallbackWithNoParam() {
-                    @Override
-                    public void onFailure(AutelError error) {
-                        logOut("setPIVMode  description  " + error.getDescription());
-                    }
-
-                    @Override
-                    public void onSuccess() {
-                        logOut("setPIVMode onSuccess");
-                    }
-                });
+            public void onFailure(AutelError autelError) {
+                logOut("getPIVMode onFailure " + autelError);
             }
+        }));
+        view.findViewById(R.id.setPIVMode).setOnClickListener(v -> {
+            xt701.setPIVMode(pivMode, new CallbackWithNoParam() {
+                @Override
+                public void onFailure(AutelError error) {
+                    logOut("setPIVMode  description  " + error.getDescription());
+                }
+
+                @Override
+                public void onSuccess() {
+                    logOut("setPIVMode onSuccess");
+                }
+            });
         });
         view.findViewById(R.id.setAutoPIVTimelapseInterval).setOnClickListener(new View.OnClickListener() {
             @Override

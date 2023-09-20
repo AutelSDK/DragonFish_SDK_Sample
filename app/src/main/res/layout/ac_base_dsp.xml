@@ -10,6 +10,7 @@
         android:id="@+id/scanRFLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:visibility="gone"
         android:background="@drawable/text_background"
         android:orientation="vertical">
 
@@ -41,6 +42,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/item_margin_top"
+        android:visibility="gone"
         android:background="@drawable/text_background"
         android:orientation="vertical">
 
@@ -73,6 +75,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/item_margin_top"
+        android:visibility="gone"
         android:background="@drawable/text_background"
         android:orientation="vertical">
 

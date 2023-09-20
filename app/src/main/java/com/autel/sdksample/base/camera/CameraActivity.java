@@ -6,6 +6,7 @@ import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -13,6 +14,9 @@ import com.autel.common.CallbackWithTwoParams;
 import com.autel.common.camera.CameraProduct;
 import com.autel.common.error.AutelError;
 import com.autel.common.video.OnRenderFrameInfoListener;
+import com.autel.manager.player.AutelPlayerManager;
+import com.autel.manager.player.autelplayer.AutelPlayer;
+import com.autel.manager.player.autelplayer.AutelPlayerView;
 import com.autel.sdk.camera.AutelBaseCamera;
 import com.autel.sdk.camera.AutelCameraManager;
 import com.autel.sdk.product.BaseProduct;
@@ -21,6 +25,7 @@ import com.autel.sdksample.R;
 import com.autel.sdksample.TestApplication;
 import com.autel.sdksample.base.camera.fragment.CameraDFFragment;
 import com.autel.sdksample.base.camera.fragment.CameraNotConnectFragment;
+import com.autel.util.log.AutelLog;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
@@ -28,6 +33,7 @@ import androidx.fragment.app.Fragment;
 
 public class CameraActivity extends AppCompatActivity {
     private final String TAG = getClass().getSimpleName();
+    FrameLayout mContentLayout;
     TextView cameraType;
     TextView cameraLogOutput;
     AutelBaseCamera currentCamera;
@@ -41,7 +47,41 @@ public class CameraActivity extends AppCompatActivity {
             }
         }
     };
-    AutelCodecView codecView;
+    private AutelPlayerView codecView;
+    private AutelPlayer mAutelPlayer;
+
+    private AutelPlayerView createAutelCodecView() {
+        AutelPlayerView codecView = new AutelPlayerView(this);
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+        );
+        codecView.setLayoutParams(params);
+        return codecView;
+    }
+
+    private void initVideo() {
+        AutelLog.debug_i("initCodec","initVideo  codecBase ");
+        AutelPlayerManager.getInstance().init(this, false);
+        codecView = createAutelCodecView();
+        mContentLayout.addView(codecView);
+        mAutelPlayer = new AutelPlayer(0);
+        mAutelPlayer.addVideoView(codecView);
+        AutelPlayerManager.getInstance().addAutelPlayer(mAutelPlayer);
+        mAutelPlayer.startPlayer();
+    }
+
+
+    private void stopPlayer(){
+        AutelLog.debug_i("initCodec","stopPlayer  codecBase ");
+        if(null != mAutelPlayer){
+            mAutelPlayer.removeVideoView();
+            AutelPlayerManager.getInstance().removeAutelPlayer(mAutelPlayer);
+            mAutelPlayer.stopPlayer();
+            mAutelPlayer.releasePlayer();
+
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +96,7 @@ public class CameraActivity extends AppCompatActivity {
         }
         changePage(CameraNotConnectFragment.class);
 //        initListener();
-        codecView = (AutelCodecView) findViewById(R.id.codecView);
+        mContentLayout = (FrameLayout) findViewById(R.id.contentCodec);
 
         findViewById(R.id.camera_type).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -65,6 +105,7 @@ public class CameraActivity extends AppCompatActivity {
             }
         });
 
+        initVideo();
     }
 
     boolean fullScreen = true;
@@ -136,27 +177,6 @@ public class CameraActivity extends AppCompatActivity {
         super.onResume();
         initListener();
         state = false;
-        codecView.resume();
-        codecView.setOnRenderFrameInfoListener(new OnRenderFrameInfoListener() {
-            @Override
-            public void onRenderFrameTimestamp(long pts) {
-                if (!state) {
-                    state = true;
-                    codecView.setOverExposure(false, R.drawable.expo1280);
-                }
-            }
-
-            @Override
-            public void onRenderFrameSizeChanged(int width, int height) {
-
-            }
-
-            @Override
-            public void onFrameStream(byte[] bytes, boolean b, int i, long l) {
-
-            }
-        });
-        codecView.setOverExposure(false, R.drawable.expo1280);
     }
 
     public void onPause() {
@@ -164,8 +184,6 @@ public class CameraActivity extends AppCompatActivity {
         if (null == autelCameraManager) {
             return;
         }
-        codecView.pause();
-        codecView.setOnRenderFrameInfoListener(null);
         autelCameraManager.setCameraChangeListener(null);
     }
 
@@ -183,6 +201,7 @@ public class CameraActivity extends AppCompatActivity {
 
     public void onDestroy() {
         super.onDestroy();
+        stopPlayer();
     }
 
     public void logOut(String log) {

@@ -238,12 +238,6 @@ public abstract class MapActivity extends FragmentActivity implements MapOperato
         BaseProduct baseProduct = ((TestApplication) getApplicationContext()).getCurrentProduct();
         if (null != baseProduct) {
             switch (baseProduct.getType()) {
-                case X_STAR:
-//                    xStarFlyController = ((XStarAircraft) baseProduct).getFlyController();
-                    break;
-                case PREMIUM:
-//                    xStarFlyController = ((XStarPremiumAircraft) baseProduct).getFlyController();
-                    break;
                 case DRAGONFISH:
                     xStarFlyController = ((CruiserAircraft) baseProduct).getFlyController();
                     break;
@@ -277,7 +271,7 @@ public abstract class MapActivity extends FragmentActivity implements MapOperato
 
     public String getLowAccuracyProvider() {
         Criteria criteria = new Criteria();
-        criteria.setAccuracy(Criteria.ACCURACY_LOW);
+        criteria.setAccuracy(Criteria.ACCURACY_FINE);
         criteria.setPowerRequirement(Criteria.POWER_LOW);
         return mLocationManager.getBestProvider(criteria, true);
     }

@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
 android {
-    compileSdkVersion 28
-    buildToolsVersion '28.0.3'
+    compileSdk 32
     signingConfigs {
         config {
             keyAlias 'android'
@@ -20,15 +20,23 @@ android {
         /*/
         applicationId "com.autel.sdk.sdksample"
         /*/
-        applicationId "com.autel.maxlink"
+        applicationId "com.autel.sdksample"
         //*/
-        minSdkVersion 19
-        targetSdkVersion 28
+        minSdkVersion 21
+        targetSdkVersion 32
         versionCode 2
         versionName "V2.0.9.8"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         signingConfig signingConfigs.config
-        multiDexEnabled true
+        multiDexEnabled false
+        ndk {
+            abiFilters 'arm64-v8a'//, 'armeabi', 'armeabi-v7a', 'arm64-v8a', 'x86'
+        }
+    }
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES'
+        pickFirst 'lib/arm64-v8a/libc++_shared.so'
+        pickFirst 'lib/armeabi-v7a/libc++_shared.so'
     }
     buildTypes {
         debug {
@@ -59,7 +67,6 @@ configurations.all {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-//    implementation 'com.android.support:design:28.0.0'
     androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
@@ -68,25 +75,16 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
 
-//    implementation 'com.android.support:appcompat-v7:25.3.1'
     implementation 'com.google.android.gms:play-services-maps:10.2.0'
-//    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
     implementation 'androidx.multidex:multidex:2.0.1'
-    implementation 'com.android.support:recyclerview-v7:25.3.1'
     implementation 'io.reactivex.rxjava2:rxjava:2.1.2'
     implementation 'io.reactivex.rxjava2:rxandroid:2.0.1'
     testImplementation 'junit:junit:4.12'
     implementation('com.squareup.okhttp3:okhttp:3.8.1')
-//    implementation 'com.autel:autel-sdk:2.0.11.81@aar'
-    api(name: "autel-sdk", ext: "aar") {
+    api(name: "autel-sdk-release_V2.0.2", ext: "aar") {
         exclude module: 'okio'
         exclude module: 'okhttp'
     }
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    //3D地图so及jar
-//    implementation 'com.amap.api:3dmap:latest.integration'
-    //定位功能
-//    implementation 'com.amap.api:location:latest.integration'
-//    implementation(name: 'libqxwz_release_v1.1.0', ext: 'aar')
-//    implementation 'com.google.code.gson:gson:2.8.6'
+    implementation 'com.tencent.mars:mars-xlog:1.2.5'
 }
