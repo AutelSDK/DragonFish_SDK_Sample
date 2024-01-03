@@ -70,7 +70,6 @@ public class SerialAidlActivity extends AppCompatActivity {
             mService.addHardwareRealTimeListener(mSerialRealTimeCallback);
         } catch (RemoteException e) {
             e.printStackTrace();
-            Log.d(TAG, "setHardwareRealtimelistener error "+e.getMessage());
         }
     }
 
@@ -119,7 +118,7 @@ public class SerialAidlActivity extends AppCompatActivity {
     public void connectWifi(View view) {
         if (null != listWIFis && listWIFis.size() > 0) {
             try {
-                mService.connect(listWIFis.get(0), "12345678");
+                mService.connect(listWIFis.get(0), "123456789");
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
@@ -136,7 +135,8 @@ public class SerialAidlActivity extends AppCompatActivity {
             listWIFis.clear();
             listWIFis.addAll(list);
             Log.d(TAG, "onScanLists list.size " + list.size());
-            for (WIFiScanResult result : list) {
+            for (WIFiScanResult result :
+                    list) {
                 Log.d(TAG, "onScanLists list.size " + result.SSID);
             }
 
@@ -165,9 +165,10 @@ public class SerialAidlActivity extends AppCompatActivity {
     }
 
     private static final class SerialRealTimeCallback extends IHardwareRealTimeInterface.Stub {
+
         @Override
-        public void onRealTimeWheelListener(int leftWheel, int rightWheel) throws RemoteException {
-            Log.d(TAG, "onRealTimeListener -> " + leftWheel+ " rightWheel:" + rightWheel);
+        public void onRealTimeListener(String data) throws RemoteException {
+            Log.d(TAG, "onRealTimeListener -> " + data);
         }
     }
 
@@ -188,7 +189,7 @@ public class SerialAidlActivity extends AppCompatActivity {
         mServiceConnection = new AdditionServiceConnection();
         Intent intent = new Intent();
         intent.setAction("com.autel.aidlservice.aidl");
-        intent.setPackage("com.autel");
+        intent.setPackage("com.autel.basestation");
         bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
 
     }
@@ -216,7 +217,7 @@ public class SerialAidlActivity extends AppCompatActivity {
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
-            Log.d(TAG, "onServiceConnected: "+mService);
+            Log.d(TAG, "onServiceConnected: ");
         }
 
         @Override
