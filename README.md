@@ -17,3 +17,15 @@ restart the tablet, and then run the project
 adb remount
 adb push app-release_basestation.apk    directory /system/app/
 adb reboot
+
+2024-1-3 更新记录
+1、更新app-release_basestation_V1.1.apk,增加aidl 支持平板左右波轮  需要更新此Apk 及 IHardwareRealTimeInterface.aidl文件
+interface IHardwareRealTimeInterface {
+//实时上报的平板波轮数据
+void onRealTimeWheelListener(int leftWheel,int rightWheel);
+}
+2、绑定service服务包名修改
+Intent intent = new Intent();
+intent.setAction("com.autel.aidlservice.aidl");
+intent.setPackage("com.autel");
+bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
