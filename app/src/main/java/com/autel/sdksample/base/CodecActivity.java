@@ -1,6 +1,5 @@
 package com.autel.sdksample.base;
 
-import android.media.MediaCodec;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,13 +12,10 @@ import android.widget.TextView;
 import com.autel.manager.player.AutelPlayerManager;
 import com.autel.manager.player.autelplayer.AutelPlayer;
 import com.autel.manager.player.autelplayer.AutelPlayerView;
-import com.autel.manager.player.codec.OnRenderFrameInfoListener;
 import com.autel.sdk.product.BaseProduct;
 import com.autel.sdk.video.AutelCodec;
 import com.autel.sdksample.R;
 import com.autel.util.log.AutelLog;
-
-import java.nio.ByteBuffer;
 
 public class CodecActivity extends BaseActivity<AutelCodec> {
 
@@ -131,27 +127,6 @@ public class CodecActivity extends BaseActivity<AutelCodec> {
                 mAutelPlayer = new AutelPlayer(0);
                 mAutelPlayer.addVideoView(codecView);
                 AutelPlayerManager.getInstance().addAutelPlayer(mAutelPlayer);
-                AutelPlayerManager.getInstance().addCodecListeners(TAG, 0, new OnRenderFrameInfoListener() {
-                    @Override
-                    public void onRenderFrameTimestamp(long l) {
-
-                    }
-
-                    @Override
-                    public void onRenderFrameSizeChanged(int i, int i1) {
-
-                    }
-
-                    @Override
-                    public void onFrameStream(byte[] bytes, boolean b, int i, long l, int i1) {
-
-                    }
-
-                    @Override
-                    public void onFrameStream(ByteBuffer byteBuffer, MediaCodec.BufferInfo bufferInfo, boolean b, int i, int i1, int i2) {
-
-                    }
-                });
                 mAutelPlayer.startPlayer();
             }
         });

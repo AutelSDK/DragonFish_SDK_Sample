@@ -132,6 +132,21 @@ public class CameraActivity extends AppCompatActivity {
                 currentCamera = data2;
                 cameraType.setText(data1.toString());
                 switch (data1) {
+//                    case R12:
+//                        changePage(CameraR12Fragment.class);
+//                        break;
+//                    case XB015:
+//                        changePage(CameraXB015Fragment.class);
+//                        break;
+//                    case XT701:
+//                        changePage(CameraXT701Fragment.class);
+//                        break;
+//                    case XT705:
+//                        changePage(CameraXT705Fragment.class);
+//                        break;
+//                    case XT706:
+//                        changePage(CameraXT706Fragment.class);
+//                        break;
                     case XT708:
                     case XT710:
                     case XT711:

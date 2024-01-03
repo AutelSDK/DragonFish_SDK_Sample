@@ -38,10 +38,10 @@ public class TestApplication extends MultiDexApplication {
         super.onCreate();
         Log.v(TAG, "TestApplication onCreate ");
 
-        Thread.setDefaultUncaughtExceptionHandler(new EHandle(Thread.getDefaultUncaughtExceptionHandler()));
         /**
          * 初始化SDK，通过网络验证APPKey的有效性
          */
+        Thread.setDefaultUncaughtExceptionHandler(new EHandle(Thread.getDefaultUncaughtExceptionHandler()));
         String appKey = "<SDK license should be input>";
         AutelSdkConfig config = new AutelSdkConfig.AutelSdkConfigBuilder()
                 .setAppKey(appKey)
@@ -61,6 +61,10 @@ public class TestApplication extends MultiDexApplication {
                 Log.v(TAG, "checkAppKeyValidate " + error.getDescription());
             }
         });
+        File myDir = new File(AutelDirPathUtils.getLogCatPath());
+        if (!myDir.exists()) {
+            myDir.mkdirs();
+        }
         NetWorkProxyJni.setType(0);//使用基站连接时设置0，使用图传直连时设置为1
         com.autel.log.AutelLog.init(BuildConfig.DEBUG, AutelDirPathUtils.getLogCatPath(),
                 AutelDirPathUtils.getLogCatPath(), 5);
