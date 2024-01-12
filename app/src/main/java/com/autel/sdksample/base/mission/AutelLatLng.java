@@ -11,19 +11,29 @@ public class AutelLatLng implements Serializable {
      */
 	public double latitude;// LatLng 经度
 	public double longitude;// LatLng 纬度
+	public double altitude;// LatLng 高度
 	private float rotate = 0;
 	private String time;
 
 	public AutelLatLng(double latd, double longd) {
 		set(latd,longd);
 	}
-	
+
+	public AutelLatLng(double latd, double longd,double alt) {
+		set(latd,longd,alt);
+	}
+
 	public AutelLatLng(AutelLatLng all){
 		set(all.latitude,all.longitude);
 	}
 	public void set(double latitude, double longitude){
 		this.latitude = latitude; 
 		this.longitude = longitude;
+	}
+	public void set(double latitude, double longitude,double alt){
+		this.latitude = latitude;
+		this.longitude = longitude;
+		this.altitude = alt;
 	}
 	
 	public double getLatitude() {
@@ -32,6 +42,10 @@ public class AutelLatLng implements Serializable {
 
 	public double getLongitude() {
 		return longitude;
+	}
+
+	public double getAltitude() {
+		return altitude;
 	}
 
 	@Override

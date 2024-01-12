@@ -118,5 +118,12 @@
     <string name="camera_display_mode_ir">Infrared</string>
     <string name="camera_display_mode_pip">Picture in Picture</string>
     <string name="title_activity_serial_aidl">SerialAidlActivity</string>
-
+    <string name="none_action">No Action</string>
+    <string name="none">None</string>
+    <string name="take_photo">Take Photo</string>
+    <string name="time_lapse">Time Lapse</string>
+    <string name="distance_lapse">Dist. Lapse</string>
+    <string name="record">Record</string>
+    <string name="take_record">Record</string>
+    <string name="unknown">Unknown</string>
 </resources>

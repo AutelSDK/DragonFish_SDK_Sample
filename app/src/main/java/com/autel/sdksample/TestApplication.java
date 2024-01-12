@@ -66,8 +66,8 @@ public class TestApplication extends MultiDexApplication {
             myDir.mkdirs();
         }
         NetWorkProxyJni.setType(0);//使用基站连接时设置0，使用图传直连时设置为1
-        com.autel.log.AutelLog.init(BuildConfig.DEBUG, AutelDirPathUtils.getLogCatPath(),
-                AutelDirPathUtils.getLogCatPath(), 5);
+//        com.autel.log.AutelLog.init(BuildConfig.DEBUG, AutelDirPathUtils.getLogCatPath(),
+//                AutelDirPathUtils.getLogCatPath(), 5);
     }
 
 

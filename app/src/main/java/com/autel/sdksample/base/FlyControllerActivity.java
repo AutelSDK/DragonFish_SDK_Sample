@@ -411,14 +411,14 @@ public abstract class FlyControllerActivity extends BaseActivity<AutelFlyControl
     }
 
     public void getLedPilotLamp(View view) {
-        mController.getLedPilotLamp(new CallbackWithOneParam<LedPilotLamp>() {
+        mController.getLedPilotLamp(new CallbackWithOneParam<NavigationControlLight>() {
             @Override
             public void onFailure(AutelError error) {
                 logOut("getLedPilotLamp AutelError " + error.getDescription());
             }
 
             @Override
-            public void onSuccess(LedPilotLamp ledPilotLamp) {
+            public void onSuccess(NavigationControlLight ledPilotLamp) {
                 logOut("getLedPilotLamp onSuccess " + ledPilotLamp);
             }
         });

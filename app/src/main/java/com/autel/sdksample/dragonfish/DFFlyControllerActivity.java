@@ -197,12 +197,12 @@ public class DFFlyControllerActivity extends FlyControllerActivity {
                 ||TextUtils.isEmpty(altland)
                 ||TextUtils.isEmpty(radius))return;
         LandingParams params = new LandingParams();
-        params.setLatitude(Float.parseFloat(lat));
-        params.setLongitude(Float.parseFloat(lng));
-        params.setAltitude(Integer.valueOf(alt));
-        params.setLatitudeLanding(Float.parseFloat(latland));
-        params.setLongitudeLanding(Float.parseFloat(lngland));
-        params.setRadius(Integer.valueOf(radius));
+        params.setLatitude((int) (Float.parseFloat(lat)*1E7));
+        params.setLongitude((int) (Float.parseFloat(lng)*1E7));
+        params.setAltitude(Integer.parseInt(alt));
+        params.setLDLatitude((int) (Float.parseFloat(latland)*1E7));
+        params.setLongitude((int) (Float.parseFloat(lngland)*1E7));
+        params.setLDRadius(Integer.parseInt(radius));
         if(null == mEvoFlyController) return;
         mEvoFlyController.land(landType,params, new CallbackWithNoParam() {
             @Override

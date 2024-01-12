@@ -110,4 +110,44 @@
         app:layout_constraintTop_toBottomOf="@+id/testWaypoint"
         android:text="testMapping"
         android:textAllCaps="false" />
+    <Button
+        android:id="@+id/testGoHome"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/testWaypoint"
+        android:text="testGoHomeMission"
+        android:onClick="testGoHomeMission"
+        android:textAllCaps="false" />
+    <Button
+        android:id="@+id/testLand"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/testGoHome"
+        android:onClick="testLand"
+        android:text="testLand"
+        android:textAllCaps="false" />
+    <Button
+        android:id="@+id/onLineMission"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/testLand"
+        android:onClick="onLineMission"
+        android:text="AirTempMission"
+        android:textAllCaps="false" />
+    <Button
+        android:id="@+id/onLine8QuickMission"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/testLand"
+        android:onClick="onLine8QuickMission"
+        android:text="空中8字临时任务"
+        android:textAllCaps="false" />
 </androidx.constraintlayout.widget.ConstraintLayout>

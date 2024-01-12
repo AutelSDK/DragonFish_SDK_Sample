@@ -1,6 +1,14 @@
 package com.autel.sdksample.dragonfish.mission;
 
+import static com.autel.lib.enums.MissionConstant.PIXEL_SIZE_XT701;
+import static com.autel.lib.enums.MissionConstant.PIXEL_SIZE_XT706;
+import static com.autel.lib.enums.MissionConstant.PIXEL_SIZE_XT708;
+import static com.autel.lib.enums.MissionConstant.PIXEL_SIZE_XT709;
+import static com.autel.lib.jniHelper.NativeHelper.getPathPlanningParameter;
+import static com.autel.sdksample.utils.MissionSaveUtils.getDroneLocation;
+
 import android.os.Bundle;
+import android.util.Log;
 import android.util.Pair;
 import android.view.View;
 import android.widget.Button;
@@ -10,6 +18,7 @@ import com.autel.common.CallbackWithNoParam;
 import com.autel.common.CallbackWithOneParam;
 import com.autel.common.CallbackWithOneParamProgress;
 import com.autel.common.battery.cruiser.CruiserBatteryInfo;
+import com.autel.common.camera.CameraProduct;
 import com.autel.common.error.AutelError;
 import com.autel.common.flycontroller.AutoSafeState;
 import com.autel.common.flycontroller.FlightErrorState;
@@ -19,7 +28,6 @@ import com.autel.common.flycontroller.SafeCheck;
 import com.autel.common.flycontroller.cruiser.CruiserFlyControllerInfo;
 import com.autel.common.mission.AutelCoordinate3D;
 import com.autel.common.mission.AutelMission;
-import com.autel.common.mission.MissionType;
 import com.autel.common.mission.RealTimeInfo;
 import com.autel.common.mission.base.DirectionLatLng;
 import com.autel.common.mission.base.DistanceModel;
@@ -28,8 +36,11 @@ import com.autel.common.mission.cruiser.CruiserWaypointMission;
 import com.autel.common.product.AutelProductType;
 import com.autel.common.remotecontroller.RemoteControllerInfo;
 import com.autel.internal.sdk.mission.cruiser.CruiserWaypointRealTimeInfoImpl;
+import com.autel.lib.enums.MissionConstant;
 import com.autel.lib.jniHelper.NativeHelper;
+import com.autel.lib.jniHelper.PathPlanningParameter;
 import com.autel.lib.jniHelper.PathPlanningResult;
+import com.autel.lib.jniHelper.SubMissionInfo;
 import com.autel.sdk.battery.CruiserBattery;
 import com.autel.sdk.flycontroller.CruiserFlyController;
 import com.autel.sdk.mission.MissionManager;
@@ -40,11 +51,23 @@ import com.autel.sdksample.PhoneBatteryManager;
 import com.autel.sdksample.R;
 import com.autel.sdksample.TestApplication;
 import com.autel.sdksample.base.util.FileUtils;
+import com.autel.sdksample.dragonfish.mission.enums.CameraActionType;
+import com.autel.sdksample.dragonfish.mission.enums.DroneHeadingControl;
+import com.autel.sdksample.dragonfish.mission.enums.MissionType;
+import com.autel.sdksample.dragonfish.mission.enums.WaypointType;
+import com.autel.sdksample.dragonfish.mission.model.BaseMissionModel;
+import com.autel.sdksample.dragonfish.mission.model.CameraActionItem;
+import com.autel.sdksample.dragonfish.mission.model.TaskModel;
+import com.autel.sdksample.dragonfish.mission.model.WaypointMissionModel;
+import com.autel.sdksample.dragonfish.mission.model.WaypointModel;
 import com.autel.sdksample.dragonfish.rxrunnable.IOUiRunnable;
+import com.autel.sdksample.utils.RealTimePathPlaningUtils;
 import com.autel.util.log.AutelLog;
 import com.autel.video.NetWorkProxyJni;
+import com.google.gson.Gson;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -52,6 +75,7 @@ import java.util.UUID;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+
 import io.reactivex.Observable;
 
 
@@ -65,7 +89,7 @@ public class DFWayPointActivity extends AppCompatActivity implements View.OnClic
     private MissionManager missionManager;
     private float lowBatteryPercent = 15f;
     private boolean isBatteryOk = false; //当前电量是否合适
-//    private boolean isCompassOk = false; //当前指南针状态是否OK
+    //    private boolean isCompassOk = false; //当前指南针状态是否OK
 //    private boolean isImuOk = false; //当前IMU是否OK
 //    private boolean isGpsOk = false; //当前gps是否OK
 //    private boolean isImageTransOk = false; //当前图传信号是否OK
@@ -77,6 +101,7 @@ public class DFWayPointActivity extends AppCompatActivity implements View.OnClic
     private String filePath = FileUtils.getMissionFilePath() + "mission.aut";
     private boolean isDroneCheckFinish;
     private boolean isDroneOk;
+
 
     enum FlyState {
         Prepare, Start, Pause, None
@@ -140,7 +165,7 @@ public class DFWayPointActivity extends AppCompatActivity implements View.OnClic
             //监听遥控器电量变化
             PhoneBatteryManager.getInstance().addBatteryChangeListener(TAG,
                     (current, total) -> {
-                        AutelLog.debug_i(TAG, "pad battery-> " + current );
+                        AutelLog.debug_i(TAG, "pad battery-> " + current);
                         isBatteryOk = current > 15;
                     }
             );
@@ -157,7 +182,7 @@ public class DFWayPointActivity extends AppCompatActivity implements View.OnClic
 //                    isImuOk = evoFlyControllerInfo.getFlyControllerStatus().isIMU0Valid() && evoFlyControllerInfo.getFlyControllerStatus().isIMU1Valid();
 //
 //                    isGpsOk = evoFlyControllerInfo.getFlyControllerStatus().isGpsValid();
-                    AutelLog.d(TAG,"setFlyControllerInfoListener flyMode->"+flyMode);
+                    AutelLog.d(TAG, "setFlyControllerInfoListener flyMode->" + flyMode);
                     if (null != evoFlyControllerInfo && null != evoFlyControllerInfo.getFlyControllerStatus()) {
                         SafeCheck safeCheck = evoFlyControllerInfo.getFlyControllerStatus().getSafeCheck();
                         //飞行器自检完成
@@ -238,7 +263,7 @@ public class DFWayPointActivity extends AppCompatActivity implements View.OnClic
                             + " isRemoteControllerNormal " + safeState.isRemoteControllerNormal()
 //                            + " flightMode " + mRequestManager.getApplicationState().getFlightType()//需要先将遥控器档位拨至A档
                             + " isDroneOk " + isDroneOk);
-                    Toast.makeText(getApplicationContext(),"autoCheck finish "+isDroneOk,Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "autoCheck finish " + isDroneOk, Toast.LENGTH_LONG).show();
 
                 }
 
@@ -270,212 +295,804 @@ public class DFWayPointActivity extends AppCompatActivity implements View.OnClic
             if (!myDir.exists()) {
                 myDir.mkdirs();
             }
-            double missionType = 1;//任务类型，1-航点任务，6-矩形/多边形任务
-            //长度/高度单位均为米
 
-            //长度为3，飞机的纬度、经度、起飞高度
-            double[] droneLocation = new double[]{22.59638835580453, 113.99613850526757, 40.0};
-            //长度为3，返航点的纬度、经度、返航高度
-            double[] homeLocation = new double[]{22.59638835580453, 113.99613850526757, 50.0};
-            //长度为4，上升盘旋点的纬度、经度、高度、盘旋半径
-            double[] launchLocation = new double[]{22.59638835580453, 113.99318883642341, 100.0, 120.0};
-            //长度为4，下降盘旋点的纬度、经度、高度、盘旋半径
-            double[] landingLocation = new double[]{22.59291695879857, 113.99787910849454, 100.0, 120.0};
-            //长度为8（两个点），如果没有可以全设为0，只用于矩形和多边形，矩形/多边形与上升下降盘旋点之间的点的纬度、经度、高度、是否使用该航点(0-使用，1-不使用)
-            double[] avoidPosition = new double[]{22.598295333564423, 113.99354868480384, 100.0, 1.0,
-                    22.598772827314363, 113.99867325644607, 100.0, 1.0};
 
-            char waypointLen = 2;//航点的个数/矩形多边形是顶点的个数
-            int poiPointLen = 2;//观察点的个数
-
-            //以下参数针对矩形、多边形任务,航点任务时全置为 0 就可以了
-            double UAVTurnRad = 120;//飞机转弯半径，默认 120 米
-            double UAVFlyVel = 17;//飞行速度(单位m/s)
-            double UserFPKIsDef = 1;//是否用户自定义主航线角度，0-自动，1-手动
-            double UserFlyPathA = 0;//用户自定义主航线角度，UserFPKIsDef为1时生效
-            double WidthSid = 140.56;//旁向扫描宽度,//2*height*tan(HFOV/2)需要自行计算得出
-            double OverlapSid = 0.7;//旁向重叠率（0-1）
-            double WidthHead = 78.984;//航向扫描宽度,//2*height*tan(VFOV/2)需要自行计算得出
-            double OverlapHead = 0.8;//航向重叠率（0-1）
-            double UAVFlyAlt = 100;//飞行高度
-
-            /*
-                航点定义根据接口协议有16个变量，分别为：
-                变量 0：当前航点标识（目前等于航点在当前任务中的序号）
-                变量 1：当前航点类型，其中：0–普通航点/飞越;1-兴趣点Orbit;4–起飞航点;5–按时间盘旋航点;6-按圈数盘旋航点;7–降落航点
-                变量 2：航点坐标，纬度
-                变量 3：航点坐标，经度
-                变量 4：航点坐标，高度
-                变量 5：航点飞行速度，单位米/秒
-                变量 6：盘旋时间或盘旋圈数，只针对航点类型为盘旋有用
-                变量 7：盘旋半径，单位：米
-                变量 8：盘旋方向：0-顺时针;1-逆时针盘旋
-                变量 9：兴趣点起始角度 1-360度
-                变量10：兴趣点水平角度 1-360度
-                变量11：相机动作类型: 0-无，1-拍照，2-定时拍照，3-定距拍照，4-录像
-                变量12：相机动作参数，定时和定距的参数
-                变量13：相机动作参数，云台俯仰角（-120 -- 0）
-                变量14-15：未定义
-            */
-            //航点任务
-            double[] waypointParamList = new double[]{1.0, 0.0, 22.597737289727164, 113.9974874391902, 100.0, 17.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -90.0, 0.0, 0.0,
-                    2.0, 0.0, 22.59897542587946, 114.00336684129968, 100.0, 17.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -90.0, 0.0, 0.0};
-            //矩形任务,顶点个数必须大于等于 4 个
-//                double[] waypointParamList = new double[]{1.0, 0.0, 22.59808119092429, 113.9951432761672, 100.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -90.0, 0.0, 0.0,
-//                        2.0, 0.0, 22.59808119092429, 113.9971040869537, 100.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -90.0, 0.0, 0.0,
-//                        3.0, 0.0, 22.596611380444926, 113.9971040869537, 100.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -90.0, 0.0, 0.0,
-//                        4.0, 0.0, 22.596611380444926, 113.9951432761672, 100.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -90.0, 0.0, 0.0};
-
-            /*
-                航点定义根据接口协议有17个变量，分别为：
-                变量 0：纬度
-                变量 1：经度
-                变量 2：高度
-                变量 3：半径
-                变量 4：IP_Type，默认 11
-                变量 5：关联航点个数
-            */
-            double[] poiParamList = new double[]{22.601550713371807, 113.99913365283817, 0.0, 120.0, 11.0, 1.0,
-                    22.600490797193245, 113.99435713952568, 20.0, 120.0, 11.0, 0.0};
-
-            //关联航点序号列表，每个观察点最多关联五个航点，数组个数为观察点个数*5
-            int[] linkPoints = new int[]{2, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-
-            //是否使用地形跟随
-            boolean isEnableTopographyFollow = true;
+            String waypointMission = "{\n" +
+                    "\t\"forceLandInfo\": [],\n" +
+                    "\t\"introInfo\": {\n" +
+                    "\t\t\"CycleMode\": 0,\n" +
+                    "\t\t\"EndSubID\": 1,\n" +
+                    "\t\t\"EndWPID\": 1.0,\n" +
+                    "\t\t\"MaxVz\": 3.0,\n" +
+                    "\t\t\"MinRadius\": 200.0,\n" +
+                    "\t\t\"StartSubID\": 1,\n" +
+                    "\t\t\"StartWPID\": 1.0,\n" +
+                    "\t\t\"forceLandNum\": 0,\n" +
+                    "\t\t\"initAlt\": 0.0,\n" +
+                    "\t\t\"initLat\": 22.51400425525294,\n" +
+                    "\t\t\"initLon\": 113.92571262532796,\n" +
+                    "\t\t\"planningType\": 11,\n" +
+                    "\t\t\"subMisNum\": 1\n" +
+                    "\t},\n" +
+                    "\t\"landInfo\": {\n" +
+                    "\t\t\"altType\": 2,\n" +
+                    "\t\t\"approachAlt\": 100.0,\n" +
+                    "\t\t\"approachLat\": 22.514004534760666,\n" +
+                    "\t\t\"approachLon\": 113.93263822751037,\n" +
+                    "\t\t\"approachR\": 200.0,\n" +
+                    "\t\t\"approachVel\": 20.0,\n" +
+                    "\t\t\"homeAlt\": 0.0,\n" +
+                    "\t\t\"homeAltType\": 2,\n" +
+                    "\t\t\"homeLat\": 22.51400425525294,\n" +
+                    "\t\t\"homeLon\": 113.92571262532796,\n" +
+                    "\t\t\"transAlt\": 40.0\n" +
+                    "\t},\n" +
+                    "\t\"launchInfo\": {\n" +
+                    "\t\t\"altType\": 2,\n" +
+                    "\t\t\"departureAlt\": 100.0,\n" +
+                    "\t\t\"departureLat\": 22.514004534760666,\n" +
+                    "\t\t\"departureLon\": 113.91878702314557,\n" +
+                    "\t\t\"departureR\": 200.0,\n" +
+                    "\t\t\"departureVel\": 20.0,\n" +
+                    "\t\t\"launchAlt\": 0.0,\n" +
+                    "\t\t\"launchLat\": 22.51400425525294,\n" +
+                    "\t\t\"launchLon\": 113.92571262532796,\n" +
+                    "\t\t\"transAlt\": 40.0\n" +
+                    "\t},\n" +
+                    "\t\"missionInfo\": [{\n" +
+                    "\t\t\"FinishMove\": 1,\n" +
+                    "\t\t\"IANum\": 0,\n" +
+                    "\t\t\"InterestArea\": [],\n" +
+                    "\t\t\"LinkLostMove\": 2,\n" +
+                    "\t\t\"WPNum\": 6,\n" +
+                    "\t\t\"subMissionInfo\": {\n" +
+                    "\t\t\t\"airLineDir\": 0.0,\n" +
+                    "\t\t\t\"baseAlt\": 0.0,\n" +
+                    "\t\t\t\"focalLength\": 25.6,\n" +
+                    "\t\t\t\"overlapAlong\": 0,\n" +
+                    "\t\t\t\"overlapSide\": 0,\n" +
+                    "\t\t\t\"pixNumX\": 22489,\n" +
+                    "\t\t\t\"pixNumY\": 12637,\n" +
+                    "\t\t\t\"resolution\": 0.0,\n" +
+                    "\t\t\t\"sensorOrient\": 1,\n" +
+                    "\t\t\t\"sensorSizeX\": 35.983963,\n" +
+                    "\t\t\t\"sensorSizeY\": 20.219847\n" +
+                    "\t\t},\n" +
+                    "\t\t\"subMissionType\": 1,\n" +
+                    "\t\t\"wpInfo\": [{\n" +
+                    "\t\t\t\"actionParam1\": 2.0,\n" +
+                    "\t\t\t\"gimbalPitch\": -42.0,\n" +
+                    "\t\t\t\"gimbalYaw\": 71.0,\n" +
+                    "\t\t\t\"payloadAction\": 2,\n" +
+                    "\t\t\t\"wpAlt\": 100.0,\n" +
+                    "\t\t\t\"wpAltType\": 2,\n" +
+                    "\t\t\t\"wpClimbMode\": 1,\n" +
+                    "\t\t\t\"wpIndex\": 1,\n" +
+                    "\t\t\t\"wpLat\": 22.517180545105873,\n" +
+                    "\t\t\t\"wpLon\": 113.92888891518089,\n" +
+                    "\t\t\t\"wpRadius\": 200.0,\n" +
+                    "\t\t\t\"wpReserved1\": 0.0,\n" +
+                    "\t\t\t\"wpTurnMode\": 2,\n" +
+                    "\t\t\t\"wpTurnParam1\": 1.0,\n" +
+                    "\t\t\t\"wpType\": 4,\n" +
+                    "\t\t\t\"wpVel\": 20.0\n" +
+                    "\t\t}, {\n" +
+                    "\t\t\t\"actionParam1\": 30.0,\n" +
+                    "\t\t\t\"gimbalPitch\": -31.0,\n" +
+                    "\t\t\t\"gimbalYaw\": -59.0,\n" +
+                    "\t\t\t\"payloadAction\": 3,\n" +
+                    "\t\t\t\"wpAlt\": 100.0,\n" +
+                    "\t\t\t\"wpAltType\": 2,\n" +
+                    "\t\t\t\"wpClimbMode\": 1,\n" +
+                    "\t\t\t\"wpIndex\": 2,\n" +
+                    "\t\t\t\"wpLat\": 22.51922217962033,\n" +
+                    "\t\t\t\"wpLon\": 113.92471539799595,\n" +
+                    "\t\t\t\"wpRadius\": 200.0,\n" +
+                    "\t\t\t\"wpReserved1\": 0.0,\n" +
+                    "\t\t\t\"wpTurnMode\": 2,\n" +
+                    "\t\t\t\"wpTurnParam1\": 1.0,\n" +
+                    "\t\t\t\"wpType\": 4,\n" +
+                    "\t\t\t\"wpVel\": 20.0\n" +
+                    "\t\t}, {\n" +
+                    "\t\t\t\"actionParam1\": 0.0,\n" +
+                    "\t\t\t\"gimbalPitch\": -38.0,\n" +
+                    "\t\t\t\"gimbalYaw\": 96.0,\n" +
+                    "\t\t\t\"payloadAction\": 4,\n" +
+                    "\t\t\t\"wpAlt\": 100.0,\n" +
+                    "\t\t\t\"wpAltType\": 2,\n" +
+                    "\t\t\t\"wpClimbMode\": 1,\n" +
+                    "\t\t\t\"wpIndex\": 3,\n" +
+                    "\t\t\t\"wpLat\": 22.519885273960526,\n" +
+                    "\t\t\t\"wpLon\": 113.93204621923553,\n" +
+                    "\t\t\t\"wpRadius\": 200.0,\n" +
+                    "\t\t\t\"wpReserved1\": 0.0,\n" +
+                    "\t\t\t\"wpTurnMode\": 2,\n" +
+                    "\t\t\t\"wpTurnParam1\": 1.0,\n" +
+                    "\t\t\t\"wpType\": 4,\n" +
+                    "\t\t\t\"wpVel\": 20.0\n" +
+                    "\t\t}, {\n" +
+                    "\t\t\t\"actionParam1\": 0.0,\n" +
+                    "\t\t\t\"gimbalPitch\": -42.0,\n" +
+                    "\t\t\t\"gimbalYaw\": 20.0,\n" +
+                    "\t\t\t\"payloadAction\": 0,\n" +
+                    "\t\t\t\"wpAlt\": 100.0,\n" +
+                    "\t\t\t\"wpAltType\": 2,\n" +
+                    "\t\t\t\"wpClimbMode\": 1,\n" +
+                    "\t\t\t\"wpIndex\": 4,\n" +
+                    "\t\t\t\"wpLat\": 22.516633741529645,\n" +
+                    "\t\t\t\"wpLon\": 113.93664236660521,\n" +
+                    "\t\t\t\"wpRadius\": 200.0,\n" +
+                    "\t\t\t\"wpReserved1\": 0.0,\n" +
+                    "\t\t\t\"wpTurnMode\": 2,\n" +
+                    "\t\t\t\"wpTurnParam1\": 1.0,\n" +
+                    "\t\t\t\"wpType\": 4,\n" +
+                    "\t\t\t\"wpVel\": 20.0\n" +
+                    "\t\t}, {\n" +
+                    "\t\t\t\"actionParam1\": 0.0,\n" +
+                    "\t\t\t\"gimbalPitch\": -42.0,\n" +
+                    "\t\t\t\"gimbalYaw\": 20.0,\n" +
+                    "\t\t\t\"payloadAction\": 0,\n" +
+                    "\t\t\t\"wpAlt\": 100.0,\n" +
+                    "\t\t\t\"wpAltType\": 2,\n" +
+                    "\t\t\t\"wpClimbMode\": 1,\n" +
+                    "\t\t\t\"wpIndex\": 5,\n" +
+                    "\t\t\t\"wpLat\": 22.513700066361963,\n" +
+                    "\t\t\t\"wpLon\": 113.9360415517898,\n" +
+                    "\t\t\t\"wpRadius\": 200.0,\n" +
+                    "\t\t\t\"wpReserved1\": 0.0,\n" +
+                    "\t\t\t\"wpTurnMode\": 4,\n" +
+                    "\t\t\t\"wpTurnParam1\": 2.0,\n" +
+                    "\t\t\t\"wpType\": 4,\n" +
+                    "\t\t\t\"wpVel\": 20.0\n" +
+                    "\t\t}, {\n" +
+                    "\t\t\t\"actionParam1\": 0.0,\n" +
+                    "\t\t\t\"gimbalPitch\": -42.0,\n" +
+                    "\t\t\t\"gimbalYaw\": 20.0,\n" +
+                    "\t\t\t\"payloadAction\": 0,\n" +
+                    "\t\t\t\"wpAlt\": 100.0,\n" +
+                    "\t\t\t\"wpAltType\": 2,\n" +
+                    "\t\t\t\"wpClimbMode\": 1,\n" +
+                    "\t\t\t\"wpIndex\": 6,\n" +
+                    "\t\t\t\"wpLat\": 22.512379932020906,\n" +
+                    "\t\t\t\"wpLon\": 113.94115085257494,\n" +
+                    "\t\t\t\"wpRadius\": 200.0,\n" +
+                    "\t\t\t\"wpReserved1\": 0.0,\n" +
+                    "\t\t\t\"wpTurnMode\": 3,\n" +
+                    "\t\t\t\"wpTurnParam1\": 10.0,\n" +
+                    "\t\t\t\"wpType\": 4,\n" +
+                    "\t\t\t\"wpVel\": 20.0\n" +
+                    "\t\t}]\n" +
+                    "\t}]\n" +
+                    "}";
+            PathPlanningParameter pathPlanningParameter = new Gson().fromJson(waypointMission, PathPlanningParameter.class);//getPathPlanningParameter(taskModel, droneLocation, subMissionInfo);
 
             //返回0表示成功，返回非0表示失败
-            int res = NativeHelper.writeMissionFile(filePath, missionType,
-                    droneLocation, homeLocation,
-                    launchLocation, landingLocation,
-                    avoidPosition, UAVTurnRad,
-                    UAVFlyVel, UserFPKIsDef,
-                    UserFlyPathA, WidthSid,
-                    OverlapSid, WidthHead,
-                    OverlapHead, UAVFlyAlt,
-                    waypointLen, waypointParamList,
-                    poiPointLen, poiParamList, linkPoints, isEnableTopographyFollow ? 1 : 0);
+            int res = NativeHelper.writeNewMissionFile(filePath, pathPlanningParameter);
             AutelLog.d("NativeHelper", " writeMissionFile result -> " + res);
             Toast.makeText(this, "writeMissionFile result -> " + res, Toast.LENGTH_SHORT).show();
         });
 
         testWaypoint.setOnClickListener(v -> {
-            //飞机当前位置
-            double[] drone = new double[]{22.59651, 113.9972969, 0};//经纬高
-            //返航点位置
-            double[] homePoint = new double[]{22.59651, 113.9972969, 100.0};//经纬高
-            //上升盘旋点
-            double[] upHomePoint = new double[]{22.59651, 113.99434723115584, 100.0, 120.0};//经、纬、高、盘旋半径
-            //下降盘旋点
-            double[] downHomePoint = new double[]{22.59651, 114.00024656884415, 100, 120.0};//经、纬、高、盘旋半径
 
+            //测试数据 6个航点 前四个航点分别设置了相机动作定时拍照，定距拍照，录像，后三个都是无动作，第五个航点设置转弯模式为定圈盘旋，第六个航点设置转弯模式为定时盘旋
+            //具体字段含义见工程目录下面"航线规划算法文档" <<“龙鱼”在线规划输入输出定义V6_8月15日>>
+            String waypointMission = "{\n" +
+                    "\t\"forceLandInfo\": [],\n" +
+                    "\t\"introInfo\": {\n" +
+                    "\t\t\"CycleMode\": 0,\n" +
+                    "\t\t\"EndSubID\": 1,\n" +
+                    "\t\t\"EndWPID\": 1.0,\n" +
+                    "\t\t\"MaxVz\": 3.0,\n" +
+                    "\t\t\"MinRadius\": 200.0,\n" +
+                    "\t\t\"StartSubID\": 1,\n" +
+                    "\t\t\"StartWPID\": 1.0,\n" +
+                    "\t\t\"forceLandNum\": 0,\n" +
+                    "\t\t\"initAlt\": 0.0,\n" +
+                    "\t\t\"initLat\": 22.51400425525294,\n" +
+                    "\t\t\"initLon\": 113.92571262532796,\n" +
+                    "\t\t\"planningType\": 11,\n" +
+                    "\t\t\"subMisNum\": 1\n" +
+                    "\t},\n" +
+                    "\t\"landInfo\": {\n" +
+                    "\t\t\"altType\": 2,\n" +
+                    "\t\t\"approachAlt\": 100.0,\n" +
+                    "\t\t\"approachLat\": 22.514004534760666,\n" +
+                    "\t\t\"approachLon\": 113.93263822751037,\n" +
+                    "\t\t\"approachR\": 200.0,\n" +
+                    "\t\t\"approachVel\": 20.0,\n" +
+                    "\t\t\"homeAlt\": 0.0,\n" +
+                    "\t\t\"homeAltType\": 2,\n" +
+                    "\t\t\"homeLat\": 22.51400425525294,\n" +
+                    "\t\t\"homeLon\": 113.92571262532796,\n" +
+                    "\t\t\"transAlt\": 40.0\n" +
+                    "\t},\n" +
+                    "\t\"launchInfo\": {\n" +
+                    "\t\t\"altType\": 2,\n" +
+                    "\t\t\"departureAlt\": 100.0,\n" +
+                    "\t\t\"departureLat\": 22.514004534760666,\n" +
+                    "\t\t\"departureLon\": 113.91878702314557,\n" +
+                    "\t\t\"departureR\": 200.0,\n" +
+                    "\t\t\"departureVel\": 20.0,\n" +
+                    "\t\t\"launchAlt\": 0.0,\n" +
+                    "\t\t\"launchLat\": 22.51400425525294,\n" +
+                    "\t\t\"launchLon\": 113.92571262532796,\n" +
+                    "\t\t\"transAlt\": 40.0\n" +
+                    "\t},\n" +
+                    "\t\"missionInfo\": [{\n" +
+                    "\t\t\"FinishMove\": 1,\n" +
+                    "\t\t\"IANum\": 0,\n" +
+                    "\t\t\"InterestArea\": [],\n" +
+                    "\t\t\"LinkLostMove\": 2,\n" +
+                    "\t\t\"WPNum\": 6,\n" +
+                    "\t\t\"subMissionInfo\": {\n" +
+                    "\t\t\t\"airLineDir\": 0.0,\n" +
+                    "\t\t\t\"baseAlt\": 0.0,\n" +
+                    "\t\t\t\"focalLength\": 25.6,\n" +
+                    "\t\t\t\"overlapAlong\": 0,\n" +
+                    "\t\t\t\"overlapSide\": 0,\n" +
+                    "\t\t\t\"pixNumX\": 22489,\n" +
+                    "\t\t\t\"pixNumY\": 12637,\n" +
+                    "\t\t\t\"resolution\": 0.0,\n" +
+                    "\t\t\t\"sensorOrient\": 1,\n" +
+                    "\t\t\t\"sensorSizeX\": 35.983963,\n" +
+                    "\t\t\t\"sensorSizeY\": 20.219847\n" +
+                    "\t\t},\n" +
+                    "\t\t\"subMissionType\": 1,\n" +
+                    "\t\t\"wpInfo\": [{\n" +
+                    "\t\t\t\"actionParam1\": 2.0,\n" +
+                    "\t\t\t\"gimbalPitch\": -42.0,\n" +
+                    "\t\t\t\"gimbalYaw\": 71.0,\n" +
+                    "\t\t\t\"payloadAction\": 2,\n" +
+                    "\t\t\t\"wpAlt\": 100.0,\n" +
+                    "\t\t\t\"wpAltType\": 2,\n" +
+                    "\t\t\t\"wpClimbMode\": 1,\n" +
+                    "\t\t\t\"wpIndex\": 1,\n" +
+                    "\t\t\t\"wpLat\": 22.517180545105873,\n" +
+                    "\t\t\t\"wpLon\": 113.92888891518089,\n" +
+                    "\t\t\t\"wpRadius\": 200.0,\n" +
+                    "\t\t\t\"wpReserved1\": 0.0,\n" +
+                    "\t\t\t\"wpTurnMode\": 2,\n" +
+                    "\t\t\t\"wpTurnParam1\": 1.0,\n" +
+                    "\t\t\t\"wpType\": 4,\n" +
+                    "\t\t\t\"wpVel\": 20.0\n" +
+                    "\t\t}, {\n" +
+                    "\t\t\t\"actionParam1\": 30.0,\n" +
+                    "\t\t\t\"gimbalPitch\": -31.0,\n" +
+                    "\t\t\t\"gimbalYaw\": -59.0,\n" +
+                    "\t\t\t\"payloadAction\": 3,\n" +
+                    "\t\t\t\"wpAlt\": 100.0,\n" +
+                    "\t\t\t\"wpAltType\": 2,\n" +
+                    "\t\t\t\"wpClimbMode\": 1,\n" +
+                    "\t\t\t\"wpIndex\": 2,\n" +
+                    "\t\t\t\"wpLat\": 22.51922217962033,\n" +
+                    "\t\t\t\"wpLon\": 113.92471539799595,\n" +
+                    "\t\t\t\"wpRadius\": 200.0,\n" +
+                    "\t\t\t\"wpReserved1\": 0.0,\n" +
+                    "\t\t\t\"wpTurnMode\": 2,\n" +
+                    "\t\t\t\"wpTurnParam1\": 1.0,\n" +
+                    "\t\t\t\"wpType\": 4,\n" +
+                    "\t\t\t\"wpVel\": 20.0\n" +
+                    "\t\t}, {\n" +
+                    "\t\t\t\"actionParam1\": 0.0,\n" +
+                    "\t\t\t\"gimbalPitch\": -38.0,\n" +
+                    "\t\t\t\"gimbalYaw\": 96.0,\n" +
+                    "\t\t\t\"payloadAction\": 4,\n" +
+                    "\t\t\t\"wpAlt\": 100.0,\n" +
+                    "\t\t\t\"wpAltType\": 2,\n" +
+                    "\t\t\t\"wpClimbMode\": 1,\n" +
+                    "\t\t\t\"wpIndex\": 3,\n" +
+                    "\t\t\t\"wpLat\": 22.519885273960526,\n" +
+                    "\t\t\t\"wpLon\": 113.93204621923553,\n" +
+                    "\t\t\t\"wpRadius\": 200.0,\n" +
+                    "\t\t\t\"wpReserved1\": 0.0,\n" +
+                    "\t\t\t\"wpTurnMode\": 2,\n" +
+                    "\t\t\t\"wpTurnParam1\": 1.0,\n" +
+                    "\t\t\t\"wpType\": 4,\n" +
+                    "\t\t\t\"wpVel\": 20.0\n" +
+                    "\t\t}, {\n" +
+                    "\t\t\t\"actionParam1\": 0.0,\n" +
+                    "\t\t\t\"gimbalPitch\": -42.0,\n" +
+                    "\t\t\t\"gimbalYaw\": 20.0,\n" +
+                    "\t\t\t\"payloadAction\": 0,\n" +
+                    "\t\t\t\"wpAlt\": 100.0,\n" +
+                    "\t\t\t\"wpAltType\": 2,\n" +
+                    "\t\t\t\"wpClimbMode\": 1,\n" +
+                    "\t\t\t\"wpIndex\": 4,\n" +
+                    "\t\t\t\"wpLat\": 22.516633741529645,\n" +
+                    "\t\t\t\"wpLon\": 113.93664236660521,\n" +
+                    "\t\t\t\"wpRadius\": 200.0,\n" +
+                    "\t\t\t\"wpReserved1\": 0.0,\n" +
+                    "\t\t\t\"wpTurnMode\": 2,\n" +
+                    "\t\t\t\"wpTurnParam1\": 1.0,\n" +
+                    "\t\t\t\"wpType\": 4,\n" +
+                    "\t\t\t\"wpVel\": 20.0\n" +
+                    "\t\t}, {\n" +
+                    "\t\t\t\"actionParam1\": 0.0,\n" +
+                    "\t\t\t\"gimbalPitch\": -42.0,\n" +
+                    "\t\t\t\"gimbalYaw\": 20.0,\n" +
+                    "\t\t\t\"payloadAction\": 0,\n" +
+                    "\t\t\t\"wpAlt\": 100.0,\n" +
+                    "\t\t\t\"wpAltType\": 2,\n" +
+                    "\t\t\t\"wpClimbMode\": 1,\n" +
+                    "\t\t\t\"wpIndex\": 5,\n" +
+                    "\t\t\t\"wpLat\": 22.513700066361963,\n" +
+                    "\t\t\t\"wpLon\": 113.9360415517898,\n" +
+                    "\t\t\t\"wpRadius\": 200.0,\n" +
+                    "\t\t\t\"wpReserved1\": 0.0,\n" +
+                    "\t\t\t\"wpTurnMode\": 4,\n" +
+                    "\t\t\t\"wpTurnParam1\": 2.0,\n" +
+                    "\t\t\t\"wpType\": 4,\n" +
+                    "\t\t\t\"wpVel\": 20.0\n" +
+                    "\t\t}, {\n" +
+                    "\t\t\t\"actionParam1\": 0.0,\n" +
+                    "\t\t\t\"gimbalPitch\": -42.0,\n" +
+                    "\t\t\t\"gimbalYaw\": 20.0,\n" +
+                    "\t\t\t\"payloadAction\": 0,\n" +
+                    "\t\t\t\"wpAlt\": 100.0,\n" +
+                    "\t\t\t\"wpAltType\": 2,\n" +
+                    "\t\t\t\"wpClimbMode\": 1,\n" +
+                    "\t\t\t\"wpIndex\": 6,\n" +
+                    "\t\t\t\"wpLat\": 22.512379932020906,\n" +
+                    "\t\t\t\"wpLon\": 113.94115085257494,\n" +
+                    "\t\t\t\"wpRadius\": 200.0,\n" +
+                    "\t\t\t\"wpReserved1\": 0.0,\n" +
+                    "\t\t\t\"wpTurnMode\": 3,\n" +
+                    "\t\t\t\"wpTurnParam1\": 10.0,\n" +
+                    "\t\t\t\"wpType\": 4,\n" +
+                    "\t\t\t\"wpVel\": 20.0\n" +
+                    "\t\t}]\n" +
+                    "\t}]\n" +
+                    "}";
 
-            /**
-             * waypointParams：航点参数每16个值为一组，以下是以两个航点为例子；
-             参数说明：航点定义根据接口协议有16个变量，分别为：
-             航点定义根据接口协议有16个变量，分别为：
-             变量 0：当前航点标识（目前等于航点在当前任务中的序号）
-             变量 1：当前航点类型，其中：0–普通航点/飞越;1-兴趣点Orbit;4–起飞航点;5–按时间盘旋航点;6-按圈数盘旋航点;7–降落航点
-             变量 2：航点坐标，纬度
-             变量 3：航点坐标，经度
-             变量 4：航点坐标，高度
-             变量 5：航点飞行速度，单位米/秒
-             变量 6：盘旋时间或盘旋圈数，只针对航点类型为盘旋有用
-             变量 7：盘旋半径，单位：米
-             变量 8：盘旋方向：0-顺时针;1-逆时针盘旋
-             变量 9：兴趣点起始角度 1-360度
-             变量10：兴趣点水平角度 1-360度
-             变量11：相机动作类型: 0-无，1-拍照，2-定时拍照，3-定距拍照，4-录像
-             变量12：相机动作参数，定时(单位s)和定距（单位m）的参数
-             变量13：相机动作参数，云台俯仰角（-120 -- 0）
-             变量14-15：未定义
-             */
-            double[] waypointParams = new double[]{1.0, 0.0, 22.59794923247847, 113.9946704742452, 100.0, 17.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                    2.0, 0.0, 22.593907884795755, 113.99646218984662, 100.0, 17.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-            PathPlanningResult result = NativeHelper.getWaypointMissionPath(drone, homePoint, upHomePoint, downHomePoint, waypointParams);
-            int errorCode = result.getErrorCode();//是否规划任务成功，0-成功，1-失败
-            double flyLength = result.getFlyLength();//航线总距离
-            double flyTime = result.getFlyTime();//预计飞行总时间
-            double pictNum = result.getPictNum();//预计拍照数量
-            double optCourseAngle = result.getOptCourseAngle();//自动规划主航线角度时使用的主航线角度
-            List<AutelCoordinate3D> latLngList = result.getLatLngList();//整条航线所有点的纬经高
-            List<DirectionLatLng> directionLatLngList = result.getDirectionLatLngList();//航线中箭头的纬经度
-            List<DistanceModel> distanceModelList = result.getDistanceModelList();//航线中两个航点的距离的显示位置的纬度、经度、距离
-            List<AutelCoordinate3D> plusList = result.getPlusList();//两个航点间加号的纬度、经度
-
-            AutelLog.debug_i("NativeHelper:", "flyTime = " + flyTime
-                    + ", flyLength = " + flyLength + ", picNum = " + pictNum
-                    + ",errorCode = " + errorCode);
-            Toast.makeText(this, "testWaypoint result -> " + errorCode, Toast.LENGTH_SHORT).show();
+            PathPlanningResult pathPlanningResult = RealTimePathPlaningUtils.getMissionPath(waypointMission);
+            Log.d(TAG, "testWaypoint: pathPlanningResult -> " + pathPlanningResult);
+            Toast.makeText(this, "testWaypoint: pathPlanningResult -> " + pathPlanningResult, Toast.LENGTH_SHORT).show();
 
         });
         testMapping.setOnClickListener(v -> {
-            //飞机当前位置
-            double[] drone = new double[]{22.59651, 113.9972969, 0};//纬经高
-            //返航点位置
-            double[] homePoint = new double[]{22.59651, 113.9972969, 100.0};//纬经高
-            //上升盘旋点
-            double[] upHomePoint = new double[]{22.59651, 113.99434723115584, 100.0, 120.0};//纬、经、高、盘旋半径
-            //下降盘旋点
-            double[] downHomePoint = new double[]{22.59651, 114.00024656884415, 100, 120.0};//纬、经、高、盘旋半径
-            //途经点1 （上升盘旋点到任务之间添加）
-            double[] startAvoid = new double[]{22.595300191562032, 113.98885025388489, 100, 1};//纬、经、高、是否有效（0-无效，1-有效）
-            //途经点2
-            double[] endAvoid = new double[]{22.592050563109837, 113.99623427307421, 100, 1};//纬、经、高、是否有效（0-无效，1-有效）
+            //多边形测试数据，顶点个数必须大于等于 4 个
+            //具体字段含义见工程目录下面"航线规划算法文档" <<“龙鱼”在线规划输入输出定义V6_8月15日>>
+            String mappingJson = "{\n" +
+                    "\t\"forceLandInfo\": [],\n" +
+                    "\t\"introInfo\": {\n" +
+                    "\t\t\"CycleMode\": 0,\n" +
+                    "\t\t\"EndSubID\": 1,\n" +
+                    "\t\t\"EndWPID\": 1.0,\n" +
+                    "\t\t\"MaxVz\": 3.0,\n" +
+                    "\t\t\"MinRadius\": 200.0,\n" +
+                    "\t\t\"StartSubID\": 1,\n" +
+                    "\t\t\"StartWPID\": 1.0,\n" +
+                    "\t\t\"forceLandNum\": 0,\n" +
+                    "\t\t\"initAlt\": 0.0,\n" +
+                    "\t\t\"initLat\": 22.597084613515303,\n" +
+                    "\t\t\"initLon\": 114.05184496791044,\n" +
+                    "\t\t\"planningType\": 11,\n" +
+                    "\t\t\"subMisNum\": 1\n" +
+                    "\t},\n" +
+                    "\t\"landInfo\": {\n" +
+                    "\t\t\"altType\": 2,\n" +
+                    "\t\t\"approachAlt\": 100.0,\n" +
+                    "\t\t\"approachLat\": 22.597084893911017,\n" +
+                    "\t\t\"approachLon\": 114.0587747424179,\n" +
+                    "\t\t\"approachR\": 200.0,\n" +
+                    "\t\t\"approachVel\": 19.820269,\n" +
+                    "\t\t\"homeAlt\": 0.0,\n" +
+                    "\t\t\"homeAltType\": 2,\n" +
+                    "\t\t\"homeLat\": 22.597084613515303,\n" +
+                    "\t\t\"homeLon\": 114.05184496791044,\n" +
+                    "\t\t\"transAlt\": 40.0\n" +
+                    "\t},\n" +
+                    "\t\"launchInfo\": {\n" +
+                    "\t\t\"altType\": 1,\n" +
+                    "\t\t\"departureAlt\": 820.0,\n" +
+                    "\t\t\"departureLat\": 22.597084893911017,\n" +
+                    "\t\t\"departureLon\": 114.04491519340303,\n" +
+                    "\t\t\"departureR\": 200.0,\n" +
+                    "\t\t\"departureVel\": 19.820269,\n" +
+                    "\t\t\"launchAlt\": 0.0,\n" +
+                    "\t\t\"launchLat\": 22.597084613515303,\n" +
+                    "\t\t\"launchLon\": 114.05184496791044,\n" +
+                    "\t\t\"transAlt\": 40.0\n" +
+                    "\t},\n" +
+                    "\t\"missionInfo\": [{\n" +
+                    "\t\t\"FinishMove\": 1,\n" +
+                    "\t\t\"IANum\": 0,\n" +
+                    "\t\t\"InterestArea\": [],\n" +
+                    "\t\t\"LinkLostMove\": 2,\n" +
+                    "\t\t\"WPNum\": 4,\n" +
+                    "\t\t\"subMissionInfo\": {\n" +
+                    "\t\t\t\"airLineDir\": 10.0,\n" +
+                    "\t\t\t\"baseAlt\": 20.0,\n" +
+                    "\t\t\t\"focalLength\": 25.6,\n" +
+                    "\t\t\t\"overlapAlong\": 80,\n" +
+                    "\t\t\t\"overlapSide\": 70,\n" +
+                    "\t\t\t\"pixNumX\": 22489,\n" +
+                    "\t\t\t\"pixNumY\": 12637,\n" +
+                    "\t\t\t\"resolution\": 5.0,\n" +
+                    "\t\t\t\"sensorOrient\": 1,\n" +
+                    "\t\t\t\"sensorSizeX\": 35.983963,\n" +
+                    "\t\t\t\"sensorSizeY\": 20.219847\n" +
+                    "\t\t},\n" +
+                    "\t\t\"subMissionType\": 2,\n" +
+                    "\t\t\"wpInfo\": [{\n" +
+                    "\t\t\t\"actionParam1\": 0.0,\n" +
+                    "\t\t\t\"gimbalPitch\": -90.0,\n" +
+                    "\t\t\t\"gimbalYaw\": 0.0,\n" +
+                    "\t\t\t\"payloadAction\": 1,\n" +
+                    "\t\t\t\"wpAlt\": 800.00006,\n" +
+                    "\t\t\t\"wpAltType\": 2,\n" +
+                    "\t\t\t\"wpClimbMode\": 1,\n" +
+                    "\t\t\t\"wpIndex\": 1,\n" +
+                    "\t\t\t\"wpLat\": 22.60661348307411,\n" +
+                    "\t\t\t\"wpLon\": 114.0486686780575,\n" +
+                    "\t\t\t\"wpRadius\": 200.0,\n" +
+                    "\t\t\t\"wpReserved1\": 0.0,\n" +
+                    "\t\t\t\"wpTurnMode\": 2,\n" +
+                    "\t\t\t\"wpTurnParam1\": 0.0,\n" +
+                    "\t\t\t\"wpType\": 5,\n" +
+                    "\t\t\t\"wpVel\": 19.820269\n" +
+                    "\t\t}, {\n" +
+                    "\t\t\t\"actionParam1\": 0.0,\n" +
+                    "\t\t\t\"gimbalPitch\": -90.0,\n" +
+                    "\t\t\t\"gimbalYaw\": 0.0,\n" +
+                    "\t\t\t\"payloadAction\": 1,\n" +
+                    "\t\t\t\"wpAlt\": 800.00006,\n" +
+                    "\t\t\t\"wpAltType\": 2,\n" +
+                    "\t\t\t\"wpClimbMode\": 1,\n" +
+                    "\t\t\t\"wpIndex\": 2,\n" +
+                    "\t\t\t\"wpLat\": 22.60661348307411,\n" +
+                    "\t\t\t\"wpLon\": 114.06137383746925,\n" +
+                    "\t\t\t\"wpRadius\": 200.0,\n" +
+                    "\t\t\t\"wpReserved1\": 0.0,\n" +
+                    "\t\t\t\"wpTurnMode\": 2,\n" +
+                    "\t\t\t\"wpTurnParam1\": 0.0,\n" +
+                    "\t\t\t\"wpType\": 5,\n" +
+                    "\t\t\t\"wpVel\": 19.820269\n" +
+                    "\t\t}, {\n" +
+                    "\t\t\t\"actionParam1\": 0.0,\n" +
+                    "\t\t\t\"gimbalPitch\": -90.0,\n" +
+                    "\t\t\t\"gimbalYaw\": 0.0,\n" +
+                    "\t\t\t\"payloadAction\": 1,\n" +
+                    "\t\t\t\"wpAlt\": 800.00006,\n" +
+                    "\t\t\t\"wpAltType\": 2,\n" +
+                    "\t\t\t\"wpClimbMode\": 1,\n" +
+                    "\t\t\t\"wpIndex\": 3,\n" +
+                    "\t\t\t\"wpLat\": 22.593908323662365,\n" +
+                    "\t\t\t\"wpLon\": 114.06137383746925,\n" +
+                    "\t\t\t\"wpRadius\": 200.0,\n" +
+                    "\t\t\t\"wpReserved1\": 0.0,\n" +
+                    "\t\t\t\"wpTurnMode\": 2,\n" +
+                    "\t\t\t\"wpTurnParam1\": 0.0,\n" +
+                    "\t\t\t\"wpType\": 5,\n" +
+                    "\t\t\t\"wpVel\": 19.820269\n" +
+                    "\t\t}, {\n" +
+                    "\t\t\t\"actionParam1\": 0.0,\n" +
+                    "\t\t\t\"gimbalPitch\": -90.0,\n" +
+                    "\t\t\t\"gimbalYaw\": 0.0,\n" +
+                    "\t\t\t\"payloadAction\": 1,\n" +
+                    "\t\t\t\"wpAlt\": 800.00006,\n" +
+                    "\t\t\t\"wpAltType\": 2,\n" +
+                    "\t\t\t\"wpClimbMode\": 1,\n" +
+                    "\t\t\t\"wpIndex\": 4,\n" +
+                    "\t\t\t\"wpLat\": 22.593908323662365,\n" +
+                    "\t\t\t\"wpLon\": 114.0486686780575,\n" +
+                    "\t\t\t\"wpRadius\": 200.0,\n" +
+                    "\t\t\t\"wpReserved1\": 0.0,\n" +
+                    "\t\t\t\"wpTurnMode\": 2,\n" +
+                    "\t\t\t\"wpTurnParam1\": 0.0,\n" +
+                    "\t\t\t\"wpType\": 5,\n" +
+                    "\t\t\t\"wpVel\": 19.820269\n" +
+                    "\t\t}]\n" +
+                    "\t}]\n" +
+                    "}";
+            PathPlanningResult pathPlanningResult = RealTimePathPlaningUtils.getMissionPath(mappingJson);
+            Log.d(TAG, "testMapping: pathPlanningResult -> " + pathPlanningResult);
+            Toast.makeText(this, "testMapping: pathPlanningResult -> " + pathPlanningResult, Toast.LENGTH_SHORT).show();
 
-            //长度为8（两个点），如果没有可以全设为0，只用于矩形和多边形，矩形/多边形与上升下降盘旋点之间的点的纬度、经度、高度、是否使用该航点(0-使用，1-不使用)
-            double[] avoidPoints = Arrays.copyOf(startAvoid, startAvoid.length + endAvoid.length);
-            //将b数组添加到已经含有a数组的c数组中去
-            System.arraycopy(endAvoid, 0, avoidPoints, startAvoid.length, endAvoid.length);
-            //矩形或多边形顶点坐标(经、纬、高)
-            double[] vertexs = new double[]{22.603459238667625, 113.99525530891242, 100.0
-                    , 22.603459238667625, 113.9972294147372, 100.0
-                    , 22.601993332010267, 113.9972294147372, 100.0
-                    , 22.601993332010267, 113.99525530891242, 100.0};
-            //航线高度
-            float height = 100f;
-            //航线速度
-            float speed = 17.0f;
-            //旁向重叠率
-            double sideRate = 0.8f;
-            //主航线重叠率
-            float courseRate = 0.7f;
-            //主航线角度 0:自动，1：用户自定义航向角度
-            int userDefineAngle = 0;
-            //当userDefineAngle为1时有效
-            int courseAngle = 30;
-            //飞机转弯半径，默认要设置120
-            int turningRadius = 120;
-            //旁向扫描宽度
-            double sideScanWidth = 140.56235f;//2*height*tan(HFOV/2)需要自行计算得出
-            //航向扫描宽度
-            double courseScanWidth = 78.98377f;//2*height*tan(VFOV/2)
 
-            PathPlanningResult result = NativeHelper.getMappingMissionPath(drone, homePoint, upHomePoint, downHomePoint,
-                    vertexs, avoidPoints, height, speed, sideRate, courseRate
-                    , userDefineAngle, courseAngle, turningRadius
-                    , sideScanWidth, courseScanWidth);
-            double area = result.getArea();//矩形，多边形的面积
-            double flyLength = result.getFlyLength();//航线总距离
-            double flyTime = result.getFlyTime();//预计飞行总时间
-            double pictNum = result.getPictNum();//预计拍照数量
-            double optCourseAngle = result.getOptCourseAngle();//自动规划主航线角度时使用的主航线角度
-            List<AutelCoordinate3D> whiteLatLngList = result.getWhiteLatLngList();//矩形/多边形区域内转折点的纬经高
-            List<AutelCoordinate3D> latLngList = result.getLatLngList();//整条航线所有点的纬经高
-            List<DirectionLatLng> directionLatLngList = result.getDirectionLatLngList();//航线中箭头的纬经度
-            List<DistanceModel> distanceModelList = result.getDistanceModelList();//航线中两个航点的距离的显示位置的纬度、经度、距离
-            List<AutelCoordinate3D> plusList = result.getPlusList();//两个航点间加号的纬度、经度
-
-            AutelLog.d("NativeHelper", " result " + result.getArea() + " " + result.getErrorCode());
-            Toast.makeText(this, "testMapping result -> " + result.getErrorCode(), Toast.LENGTH_SHORT).show();
         });
     }
+
+    public void testGoHomeMission(View view) {
+        //返航任务测试数据
+        String goHomeJson = "{\n" +
+                "\t\"forceLandInfo\": [],\n" +
+                "\t\"introInfo\": {\n" +
+                "\t\t\"CycleMode\": 0,\n" +
+                "\t\t\"EndSubID\": 1,\n" +
+                "\t\t\"EndWPID\": 1.0,\n" +
+                "\t\t\"MaxVz\": 3.0,\n" +
+                "\t\t\"MinRadius\": 138.0,\n" +
+                "\t\t\"StartSubID\": 1,\n" +
+                "\t\t\"StartWPID\": 1.0,\n" +
+                "\t\t\"forceLandNum\": 0,\n" +
+                "\t\t\"initAlt\": 0.0,\n" +
+                "\t\t\"initLat\": 22.587813884666033,\n" +
+                "\t\t\"initLon\": 114.0177957652308,\n" +
+                "\t\t\"planningType\": 2,\n" +
+                "\t\t\"subMisNum\": 0\n" +
+                "\t},\n" +
+                "\t\"landInfo\": {\n" +
+                "\t\t\"altType\": 1,\n" +
+                "\t\t\"approachAlt\": 100.0,\n" +
+                "\t\t\"approachLat\": 22.584020803787475,\n" +
+                "\t\t\"approachLon\": 114.01358436944409,\n" +
+                "\t\t\"approachR\": 138.0,\n" +
+                "\t\t\"approachVel\": 20.0,\n" +
+                "\t\t\"homeAlt\": 0.0,\n" +
+                "\t\t\"homeAltType\": 2,\n" +
+                "\t\t\"homeLat\": 22.587813884666033,\n" +
+                "\t\t\"homeLon\": 114.0177957652308,\n" +
+                "\t\t\"transAlt\": 100.0\n" +
+                "\t},\n" +
+                "\t\"launchInfo\": {\n" +
+                "\t\t\"altType\": 0,\n" +
+                "\t\t\"departureAlt\": 0.0,\n" +
+                "\t\t\"departureLat\": 0.0,\n" +
+                "\t\t\"departureLon\": 0.0,\n" +
+                "\t\t\"departureR\": 0.0,\n" +
+                "\t\t\"departureVel\": 0.0,\n" +
+                "\t\t\"launchAlt\": 0.0,\n" +
+                "\t\t\"launchLat\": 0.0,\n" +
+                "\t\t\"launchLon\": 0.0,\n" +
+                "\t\t\"transAlt\": 0.0\n" +
+                "\t},\n" +
+                "\t\"missionInfo\": []\n" +
+                "}";
+        PathPlanningResult pathPlanningResult = RealTimePathPlaningUtils.getMissionPath(goHomeJson);
+        Log.d(TAG, "testGoHomeMission: pathPlanningResult -> " + pathPlanningResult);
+        Toast.makeText(this, "testGoHomeMission: pathPlanningResult -> " + pathPlanningResult, Toast.LENGTH_SHORT).show();
+
+    }
+    public void testLand(View view) {
+        String onLineJson = "{\n" +
+                "\t\"forceLandInfo\": [],\n" +
+                "\t\"introInfo\": {\n" +
+                "\t\t\"CycleMode\": 0,\n" +
+                "\t\t\"EndSubID\": 1,\n" +
+                "\t\t\"EndWPID\": 1.0,\n" +
+                "\t\t\"MaxVz\": 3.0,\n" +
+                "\t\t\"MinRadius\": 138.0,\n" +
+                "\t\t\"StartSubID\": 1,\n" +
+                "\t\t\"StartWPID\": 1.0,\n" +
+                "\t\t\"forceLandNum\": 0,\n" +
+                "\t\t\"initAlt\": 10.0,\n" +
+                "\t\t\"initLat\": 22.601954185582244,\n" +
+                "\t\t\"initLon\": 114.00908924274069,\n" +
+                "\t\t\"planningType\": 2,\n" +
+                "\t\t\"subMisNum\": 0\n" +
+                "\t},\n" +
+                "\t\"landInfo\": {\n" +
+                "\t\t\"altType\": 1,\n" +
+                "\t\t\"approachAlt\": 100.0,\n" +
+                "\t\t\"approachLat\": 22.595354103352392,\n" +
+                "\t\t\"approachLon\": 114.00598790081068,\n" +
+                "\t\t\"approachR\": 138.0,\n" +
+                "\t\t\"approachVel\": 20.0,\n" +
+                "\t\t\"homeAlt\": 10.0,\n" +
+                "\t\t\"homeAltType\": 2,\n" +
+                "\t\t\"homeLat\": 22.601954185582244,\n" +
+                "\t\t\"homeLon\": 114.00908924274069,\n" +
+                "\t\t\"transAlt\": 100.0\n" +
+                "\t},\n" +
+                "\t\"launchInfo\": {\n" +
+                "\t\t\"altType\": 0,\n" +
+                "\t\t\"departureAlt\": 0.0,\n" +
+                "\t\t\"departureLat\": 0.0,\n" +
+                "\t\t\"departureLon\": 0.0,\n" +
+                "\t\t\"departureR\": 0.0,\n" +
+                "\t\t\"departureVel\": 0.0,\n" +
+                "\t\t\"launchAlt\": 0.0,\n" +
+                "\t\t\"launchLat\": 0.0,\n" +
+                "\t\t\"launchLon\": 0.0,\n" +
+                "\t\t\"transAlt\": 0.0\n" +
+                "\t},\n" +
+                "\t\"missionInfo\": []\n" +
+                "}";
+        PathPlanningResult pathPlanningResult = RealTimePathPlaningUtils.getMissionPath(onLineJson);
+        Log.d(TAG, "onLineJson: pathPlanningResult -> " + pathPlanningResult);
+        Toast.makeText(this, "onLineJson: pathPlanningResult -> " + pathPlanningResult, Toast.LENGTH_SHORT).show();
+
+    }
+
+    public void onLine8QuickMission(View view) {
+        String QuickJson = "{\n" +
+                "\t\"forceLandInfo\": [],\n" +
+                "\t\"introInfo\": {\n" +
+                "\t\t\"CycleMode\": 0,\n" +
+                "\t\t\"EndSubID\": 1,\n" +
+                "\t\t\"EndWPID\": 1.0,\n" +
+                "\t\t\"MaxVz\": 3.0,\n" +
+                "\t\t\"MinRadius\": 138.0,\n" +
+                "\t\t\"StartSubID\": 1,\n" +
+                "\t\t\"StartWPID\": 1.0,\n" +
+                "\t\t\"forceLandNum\": 0,\n" +
+                "\t\t\"initAlt\": 10.0,\n" +
+                "\t\t\"initLat\": 22.601954185582244,\n" +
+                "\t\t\"initLon\": 114.00908924274069,\n" +
+                "\t\t\"planningType\": 2,\n" +
+                "\t\t\"subMisNum\": 0\n" +
+                "\t},\n" +
+                "\t\"landInfo\": {\n" +
+                "\t\t\"altType\": 1,\n" +
+                "\t\t\"approachAlt\": 100.0,\n" +
+                "\t\t\"approachLat\": 22.595354103352392,\n" +
+                "\t\t\"approachLon\": 114.00598790081068,\n" +
+                "\t\t\"approachR\": 138.0,\n" +
+                "\t\t\"approachVel\": 20.0,\n" +
+                "\t\t\"homeAlt\": 10.0,\n" +
+                "\t\t\"homeAltType\": 2,\n" +
+                "\t\t\"homeLat\": 22.601954185582244,\n" +
+                "\t\t\"homeLon\": 114.00908924274069,\n" +
+                "\t\t\"transAlt\": 100.0\n" +
+                "\t},\n" +
+                "\t\"launchInfo\": {\n" +
+                "\t\t\"altType\": 0,\n" +
+                "\t\t\"departureAlt\": 0.0,\n" +
+                "\t\t\"departureLat\": 0.0,\n" +
+                "\t\t\"departureLon\": 0.0,\n" +
+                "\t\t\"departureR\": 0.0,\n" +
+                "\t\t\"departureVel\": 0.0,\n" +
+                "\t\t\"launchAlt\": 0.0,\n" +
+                "\t\t\"launchLat\": 0.0,\n" +
+                "\t\t\"launchLon\": 0.0,\n" +
+                "\t\t\"transAlt\": 0.0\n" +
+                "\t},\n" +
+                "\t\"missionInfo\": []\n" +
+                "}";
+        PathPlanningResult pathPlanningResult = RealTimePathPlaningUtils.getMissionPath(QuickJson);
+        Log.d(TAG, "QuickJson: pathPlanningResult -> " + pathPlanningResult);
+        Toast.makeText(this, "QuickJson: pathPlanningResult -> " + pathPlanningResult, Toast.LENGTH_SHORT).show();
+
+    }
+
+    public void onLineMission(View view) {
+        //在线任务规划测试数据
+        String landJson = "{\n" +
+                "\t\"forceLandInfo\": [],\n" +
+                "\t\"introInfo\": {\n" +
+                "\t\t\"CycleMode\": 0,\n" +
+                "\t\t\"EndSubID\": 1,\n" +
+                "\t\t\"EndWPID\": 1.0,\n" +
+                "\t\t\"MaxVz\": 3.0,\n" +
+                "\t\t\"MinRadius\": 138.0,\n" +
+                "\t\t\"StartSubID\": 1,\n" +
+                "\t\t\"StartWPID\": 1.0,\n" +
+                "\t\t\"forceLandNum\": 0,\n" +
+                "\t\t\"initAlt\": 15.05,\n" +
+                "\t\t\"initLat\": 22.5988179,\n" +
+                "\t\t\"initLon\": 113.998746,\n" +
+                "\t\t\"planningType\": 8,\n" +
+                "\t\t\"subMisNum\": 1\n" +
+                "\t},\n" +
+                "\t\"landInfo\": {\n" +
+                "\t\t\"altType\": 2,\n" +
+                "\t\t\"approachAlt\": 100.0,\n" +
+                "\t\t\"approachLat\": 0.0,\n" +
+                "\t\t\"approachLon\": 0.0,\n" +
+                "\t\t\"approachR\": 200.0,\n" +
+                "\t\t\"approachVel\": 20.0,\n" +
+                "\t\t\"homeAlt\": 0.0,\n" +
+                "\t\t\"homeAltType\": 2,\n" +
+                "\t\t\"homeLat\": 22.5988179,\n" +
+                "\t\t\"homeLon\": 113.998746,\n" +
+                "\t\t\"transAlt\": 40.0\n" +
+                "\t},\n" +
+                "\t\"launchInfo\": {\n" +
+                "\t\t\"altType\": 2,\n" +
+                "\t\t\"departureAlt\": 99.0,\n" +
+                "\t\t\"departureLat\": 0.0,\n" +
+                "\t\t\"departureLon\": 0.0,\n" +
+                "\t\t\"departureR\": 200.0,\n" +
+                "\t\t\"departureVel\": 20.0,\n" +
+                "\t\t\"launchAlt\": 15.0,\n" +
+                "\t\t\"launchLat\": 22.5988179,\n" +
+                "\t\t\"launchLon\": 113.998746,\n" +
+                "\t\t\"transAlt\": 40.0\n" +
+                "\t},\n" +
+                "\t\"missionInfo\": [{\n" +
+                "\t\t\"FinishMove\": 1,\n" +
+                "\t\t\"IANum\": 0,\n" +
+                "\t\t\"InterestArea\": [],\n" +
+                "\t\t\"LinkLostMove\": 2,\n" +
+                "\t\t\"WPNum\": 4,\n" +
+                "\t\t\"subMissionInfo\": {\n" +
+                "\t\t\t\"airLineDir\": 0.0,\n" +
+                "\t\t\t\"baseAlt\": 0.0,\n" +
+                "\t\t\t\"focalLength\": 25.6,\n" +
+                "\t\t\t\"overlapAlong\": 0,\n" +
+                "\t\t\t\"overlapSide\": 0,\n" +
+                "\t\t\t\"pixNumX\": 22489,\n" +
+                "\t\t\t\"pixNumY\": 12637,\n" +
+                "\t\t\t\"resolution\": 0.0,\n" +
+                "\t\t\t\"sensorOrient\": 1,\n" +
+                "\t\t\t\"sensorSizeX\": 35.983963,\n" +
+                "\t\t\t\"sensorSizeY\": 20.219847\n" +
+                "\t\t},\n" +
+                "\t\t\"subMissionType\": 1,\n" +
+                "\t\t\"wpInfo\": [{\n" +
+                "\t\t\t\"actionParam1\": 0.0,\n" +
+                "\t\t\t\"gimbalPitch\": 0.0,\n" +
+                "\t\t\t\"gimbalYaw\": 0.0,\n" +
+                "\t\t\t\"payloadAction\": 0,\n" +
+                "\t\t\t\"wpAlt\": 99.0,\n" +
+                "\t\t\t\"wpAltType\": 2,\n" +
+                "\t\t\t\"wpClimbMode\": 1,\n" +
+                "\t\t\t\"wpIndex\": 1,\n" +
+                "\t\t\t\"wpLat\": 22.58452011970654,\n" +
+                "\t\t\t\"wpLon\": 114.00103928728367,\n" +
+                "\t\t\t\"wpRadius\": 138.0,\n" +
+                "\t\t\t\"wpReserved1\": 0.0,\n" +
+                "\t\t\t\"wpTurnMode\": 2,\n" +
+                "\t\t\t\"wpTurnParam1\": 1.0,\n" +
+                "\t\t\t\"wpType\": 4,\n" +
+                "\t\t\t\"wpVel\": 20.0\n" +
+                "\t\t}, {\n" +
+                "\t\t\t\"actionParam1\": 0.0,\n" +
+                "\t\t\t\"gimbalPitch\": 0.0,\n" +
+                "\t\t\t\"gimbalYaw\": 0.0,\n" +
+                "\t\t\t\"payloadAction\": 0,\n" +
+                "\t\t\t\"wpAlt\": 99.0,\n" +
+                "\t\t\t\"wpAltType\": 2,\n" +
+                "\t\t\t\"wpClimbMode\": 1,\n" +
+                "\t\t\t\"wpIndex\": 2,\n" +
+                "\t\t\t\"wpLat\": 22.587112365237203,\n" +
+                "\t\t\t\"wpLon\": 114.00751655967525,\n" +
+                "\t\t\t\"wpRadius\": 138.0,\n" +
+                "\t\t\t\"wpReserved1\": 0.0,\n" +
+                "\t\t\t\"wpTurnMode\": 2,\n" +
+                "\t\t\t\"wpTurnParam1\": 1.0,\n" +
+                "\t\t\t\"wpType\": 4,\n" +
+                "\t\t\t\"wpVel\": 20.0\n" +
+                "\t\t}, {\n" +
+                "\t\t\t\"actionParam1\": 0.0,\n" +
+                "\t\t\t\"gimbalPitch\": 0.0,\n" +
+                "\t\t\t\"gimbalYaw\": 0.0,\n" +
+                "\t\t\t\"payloadAction\": 0,\n" +
+                "\t\t\t\"wpAlt\": 99.0,\n" +
+                "\t\t\t\"wpAltType\": 2,\n" +
+                "\t\t\t\"wpClimbMode\": 1,\n" +
+                "\t\t\t\"wpIndex\": 3,\n" +
+                "\t\t\t\"wpLat\": 22.591007067097564,\n" +
+                "\t\t\t\"wpLon\": 114.012666509604,\n" +
+                "\t\t\t\"wpRadius\": 138.0,\n" +
+                "\t\t\t\"wpReserved1\": 0.0,\n" +
+                "\t\t\t\"wpTurnMode\": 2,\n" +
+                "\t\t\t\"wpTurnParam1\": 1.0,\n" +
+                "\t\t\t\"wpType\": 4,\n" +
+                "\t\t\t\"wpVel\": 20.0\n" +
+                "\t\t}, {\n" +
+                "\t\t\t\"actionParam1\": 0.0,\n" +
+                "\t\t\t\"gimbalPitch\": 0.0,\n" +
+                "\t\t\t\"gimbalYaw\": 0.0,\n" +
+                "\t\t\t\"payloadAction\": 0,\n" +
+                "\t\t\t\"wpAlt\": 99.0,\n" +
+                "\t\t\t\"wpAltType\": 2,\n" +
+                "\t\t\t\"wpClimbMode\": 1,\n" +
+                "\t\t\t\"wpIndex\": 4,\n" +
+                "\t\t\t\"wpLat\": 22.595771077158858,\n" +
+                "\t\t\t\"wpLon\": 114.01179980991151,\n" +
+                "\t\t\t\"wpRadius\": 138.0,\n" +
+                "\t\t\t\"wpReserved1\": 0.0,\n" +
+                "\t\t\t\"wpTurnMode\": 2,\n" +
+                "\t\t\t\"wpTurnParam1\": 1.0,\n" +
+                "\t\t\t\"wpType\": 4,\n" +
+                "\t\t\t\"wpVel\": 20.0\n" +
+                "\t\t}]\n" +
+                "\t}]\n" +
+                "}";
+        PathPlanningResult pathPlanningResult = RealTimePathPlaningUtils.getMissionPath(landJson);
+        Log.d(TAG, "onLineMission: pathPlanningResult -> " + pathPlanningResult);
+        Toast.makeText(this, "onLineMission: pathPlanningResult -> " + pathPlanningResult, Toast.LENGTH_SHORT).show();
+
+    }
+
 
     private void initData() {
         autelMission = new CruiserWaypointMission();
 
-        autelMission.missionId =  BytesUtils.getInt(UUID.randomUUID().toString().replace("-", "").getBytes()); //任务id
-        autelMission.missionType = MissionType.Waypoint; //任务类型(Waypoint(航点)、RECTANGLE(矩形)、POLYGON(多边形))
+        autelMission.missionId = BytesUtils.getInt(UUID.randomUUID().toString().replace("-", "").getBytes()); //任务id
+        autelMission.missionType = com.autel.common.mission.MissionType.Waypoint; //任务类型(Waypoint(航点)、RECTANGLE(矩形)、POLYGON(多边形))
         autelMission.finishedAction = CruiserWaypointFinishedAction.RETURN_HOME;
     }
 
@@ -485,7 +1102,7 @@ public class DFWayPointActivity extends AppCompatActivity implements View.OnClic
         switch (id) {
             case R.id.autoCheck: {
                 //飞行之前，必须进行必要的飞行检查，自检结果会在自检完成后通过 getAutoCheckResult()查询
-                AutelLog.debug_i(TAG,"autoCheck start ");
+                AutelLog.debug_i(TAG, "autoCheck start ");
                 autoCheck(ModelType.ALL);
             }
             break;
@@ -643,7 +1260,7 @@ public class DFWayPointActivity extends AppCompatActivity implements View.OnClic
     }
 
     private void doPrepare() {
-        if(flyMode != FlyMode.DISARM) {
+        if (flyMode != FlyMode.DISARM) {
             Toast.makeText(DFWayPointActivity.this, "当前飞行模式，不能执行", Toast.LENGTH_LONG).show();
             return;
         }
@@ -707,4 +1324,55 @@ public class DFWayPointActivity extends AppCompatActivity implements View.OnClic
 
         return true;
     }
+
+    /**
+     * 任务类型1：自由航点航线 2：区域测绘航线 3：八字盘旋航线
+     *
+     * @param focalLength
+     * @param sensorSizeX
+     * @param sensorSizeY
+     * @param pixel
+     * @return
+     */
+    private static SubMissionInfo getSubMissionInfo(float focalLength, float sensorSizeX, float sensorSizeY, float pixel) {
+        SubMissionInfo subMissionInfo = new SubMissionInfo();
+        subMissionInfo.setFocalLength(focalLength);
+        subMissionInfo.setSensorSizeX(sensorSizeX);
+        subMissionInfo.setSensorSizeY(sensorSizeY);
+        subMissionInfo.setPixNumX((int) (sensorSizeX / pixel * 1000));
+        subMissionInfo.setPixNumY((int) (sensorSizeY / pixel * 1000));
+        return subMissionInfo;
+    }
+
+
+    public float getCameraFocalLength() {
+        //需要判断相机类型 如果是XL718 为24
+//        if (mApplicationState.getCameraState().getCameraProduct() == CameraProduct.XL718) {
+//            return 24;
+//        }
+        return 25.6f;
+    }
+
+    public float getSensorSizeX() {
+        //40为HFOV 水平视角,需要从相机心跳里面实时获取到具体数据
+        return (float) (getCameraFocalLength() * Math.tan(40 * Math.PI / 360) * 2);
+    }
+
+    public float getSensorSizeY() {
+        //65.8 VFOV 垂直视角,需要从相机心跳里面实时获取到具体数据
+        return (float) (getCameraFocalLength() * Math.tan(65.8 * Math.PI / 360) * 2);
+    }
+
+    public float getPixel() {
+        //需要判断相机类型 根据不同的相机类型返回不通的像素大小
+//        if (mApplicationState.getCameraState().getMainCameraProduct() == CameraProduct.XT706) {
+//            return PIXEL_SIZE_XT706;
+//        } else if (mApplicationState.getCameraState().getMainCameraProduct() == CameraProduct.XT708) {
+//            return PIXEL_SIZE_XT708;
+//        } else if (mApplicationState.getCameraState().getMainCameraProduct() == CameraProduct.XT709) {
+//            return PIXEL_SIZE_XT709;
+//        }
+        return PIXEL_SIZE_XT701;
+    }
+
 }
