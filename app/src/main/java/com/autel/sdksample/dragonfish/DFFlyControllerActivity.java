@@ -27,6 +27,7 @@ import com.autel.sdksample.base.FlyControllerActivity;
 import com.autel.sdksample.base.adapter.BaseStationTypeAdapter;
 import com.autel.sdksample.base.adapter.LandingTypeAdapter;
 import com.autel.sdksample.base.adapter.VisualSettingSwitchBladeAdapter;
+import com.autel.sdksample.dragonfish.mission.enums.MissionAltitudeType;
 
 /**
  * Created by A16343 on 2017/9/6.
@@ -34,14 +35,14 @@ import com.autel.sdksample.base.adapter.VisualSettingSwitchBladeAdapter;
 
 public class DFFlyControllerActivity extends FlyControllerActivity {
     private CruiserFlyController mEvoFlyController;
-  /*  LandingGearStateAdapter mLandingGearStateAdapter;
-    LandingGearState selectedLandingGearState = LandingGearState.UNKNOWN;*/
+    /*  LandingGearStateAdapter mLandingGearStateAdapter;
+      LandingGearState selectedLandingGearState = LandingGearState.UNKNOWN;*/
     VisualSettingSwitchblade mVisualSettingSwitchblade = VisualSettingSwitchblade.UNKNOWN;
-    LandType landType = LandType.PRECISE_LANDING;
+    LandType landType = LandType.PRECISE_LANDING;//精准降落
     StationType stationType = StationType.FIXD_SELF;
     private Switch visualSettingEnableState;
-    private EditText bslatEditText,bslongEditText,bsaltEditText,latEditText,longEditText,altEditText,
-            latlandEditText,longlandEditText,altlandEditText,
+    private EditText bslatEditText, bslongEditText, bsaltEditText, latEditText, longEditText, altEditText,
+            latlandEditText, longlandEditText, altlandEditText,
             raduisEditText;
 
     @Override
@@ -83,7 +84,7 @@ public class DFFlyControllerActivity extends FlyControllerActivity {
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-               // selectedLandingGearState = LandingGearState.UNKNOWN;
+                // selectedLandingGearState = LandingGearState.UNKNOWN;
             }
         });
         ((Spinner) findViewById(R.id.landList)).setAdapter(new LandingTypeAdapter(this));
@@ -95,7 +96,7 @@ public class DFFlyControllerActivity extends FlyControllerActivity {
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-               // selectedLandingGearState = LandingGearState.UNKNOWN;
+                // selectedLandingGearState = LandingGearState.UNKNOWN;
             }
         });
         ((Spinner) findViewById(R.id.baseTypeList)).setAdapter(new BaseStationTypeAdapter(this));
@@ -150,11 +151,11 @@ public class DFFlyControllerActivity extends FlyControllerActivity {
         String lat = bslatEditText.getText().toString();
         String lng = bslongEditText.getText().toString();
         String alt = bsaltEditText.getText().toString();
-        if(TextUtils.isEmpty(lat) || TextUtils.isEmpty(lng)||TextUtils.isEmpty(alt))return;
-        mEvoFlyController.setBaseStationLocation(Double.parseDouble(lat),Double.parseDouble(lng),Double.parseDouble(alt), new CallbackWithOneParam<Boolean>() {
+        if (TextUtils.isEmpty(lat) || TextUtils.isEmpty(lng) || TextUtils.isEmpty(alt)) return;
+        mEvoFlyController.setBaseStationLocation(Double.parseDouble(lat), Double.parseDouble(lng), Double.parseDouble(alt), new CallbackWithOneParam<Boolean>() {
             @Override
             public void onSuccess(Boolean data) {
-                logOut("setBaseStationLocation onSuccess "+data);
+                logOut("setBaseStationLocation onSuccess " + data);
             }
 
             @Override
@@ -163,11 +164,12 @@ public class DFFlyControllerActivity extends FlyControllerActivity {
             }
         });
     }
+
     public void setBaseStationType(View view) {
         mEvoFlyController.setBaseStationType(stationType, new CallbackWithOneParam<Boolean>() {
             @Override
             public void onSuccess(Boolean data) {
-                logOut("setBaseStationLocation onSuccess "+data);
+                logOut("setBaseStationLocation onSuccess " + data);
             }
 
             @Override
@@ -192,19 +194,24 @@ public class DFFlyControllerActivity extends FlyControllerActivity {
         String lngland = longlandEditText.getText().toString();
         String altland = altlandEditText.getText().toString();
         String radius = raduisEditText.getText().toString();
-        if(TextUtils.isEmpty(lat) || TextUtils.isEmpty(lng)||TextUtils.isEmpty(alt)
+        if (TextUtils.isEmpty(lat) || TextUtils.isEmpty(lng) || TextUtils.isEmpty(alt)
                 || TextUtils.isEmpty(latland) || TextUtils.isEmpty(lngland)
-                ||TextUtils.isEmpty(altland)
-                ||TextUtils.isEmpty(radius))return;
+                || TextUtils.isEmpty(altland)
+                || TextUtils.isEmpty(radius)) return;
         LandingParams params = new LandingParams();
-        params.setLatitude((int) (Float.parseFloat(lat)*1E7));
-        params.setLongitude((int) (Float.parseFloat(lng)*1E7));
-        params.setAltitude(Integer.parseInt(alt));
-        params.setLDLatitude((int) (Float.parseFloat(latland)*1E7));
-        params.setLongitude((int) (Float.parseFloat(lngland)*1E7));
-        params.setLDRadius(Integer.parseInt(radius));
-        if(null == mEvoFlyController) return;
-        mEvoFlyController.land(landType,params, new CallbackWithNoParam() {
+        params.setLDLatitude((int) (Float.parseFloat(latland) * 1E7));//进场点纬度
+        params.setLDLongitude((int) (Float.parseFloat(lngland) * 1E7));//进场点经度
+        params.setLDAltitude((int) (Integer.parseInt(altland) * 1E3)); //进场点高度 单位毫米 需要乘以1E3
+        params.setLDRadius(Integer.parseInt(radius) * 10);
+        params.setLatitude((int) (Float.parseFloat(lat) * 1E7));
+        params.setLongitude((int) (Float.parseFloat(lng) * 1E7));
+        params.setAltitude((int) (Integer.parseInt(alt) * 1E3));
+        params.setLongitude((int) (Float.parseFloat(lngland) * 1E7));
+        params.setLDSwitchAlt(100 * 10);//这里设置100m 需要根据实际输入值设置 切换高度 说明此高度是相对高度值 单位分米
+        params.setLDAltType(MissionAltitudeType.RELATIVE.getValue());//切换高度类型
+        params.setLDEnterAltType(MissionAltitudeType.RELATIVE.getValue());//进场点高度类型
+        if (null == mEvoFlyController) return;
+        mEvoFlyController.land(landType, params, new CallbackWithNoParam() {
             @Override
             public void onSuccess() {
                 logOut("setBaseStationLocation onSuccess ");
@@ -235,7 +242,7 @@ public class DFFlyControllerActivity extends FlyControllerActivity {
         mEvoFlyController.droneDisarmed(new CallbackWithNoParam() {
             @Override
             public void onSuccess() {
-               // logOut("droneDisarmed onSuccess " + selectedLandingGearState);
+                // logOut("droneDisarmed onSuccess " + selectedLandingGearState);
             }
 
             @Override
@@ -278,9 +285,9 @@ public class DFFlyControllerActivity extends FlyControllerActivity {
     }
 
     public void setVisualSettingEnable(View view) {
-        if(mVisualSettingSwitchblade == VisualSettingSwitchblade.SET_VIEW_POINT_COORD){
+        if (mVisualSettingSwitchblade == VisualSettingSwitchblade.SET_VIEW_POINT_COORD) {
 
-        }else {
+        } else {
             mEvoFlyController.setVisualSettingEnable(mVisualSettingSwitchblade, visualSettingEnableState.isEnabled(), new CallbackWithNoParam() {
                 @Override
                 public void onSuccess() {

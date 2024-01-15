@@ -9,12 +9,14 @@ import android.os.RemoteException;
 import android.util.Log;
 import android.view.View;
 
+import com.autel.AutelNet2.aircraft.gimbal.controller.GimbalManager2;
 import com.autel.aidl.IBetaWIFiListListener;
 import com.autel.aidl.IHardwareManager;
 import com.autel.aidl.IHardwareRealTimeInterface;
 import com.autel.aidl.ISerialG5_8StatusListener;
 import com.autel.aidl.ISerialKeystrokeListener;
 import com.autel.aidl.WIFiScanResult;
+import com.autel.common.gimbal.evo.GimbalAngleSpeed;
 import com.autel.sdksample.R;
 
 import java.util.ArrayList;
@@ -168,6 +170,46 @@ public class SerialAidlActivity extends AppCompatActivity {
         @Override
         public void onRealTimeWheelListener(int leftWheel, int rightWheel) throws RemoteException {
             Log.d(TAG, "onRealTimeListener -> " + leftWheel+ " rightWheel:" + rightWheel);
+            //下面的函数是leftWheel 控制pitch轴，rightWheel控制yaw轴来实现的
+            dealControlWheel(leftWheel,rightWheel);
+        }
+    }
+
+    private static void dealControlWheel(int leftWheel, int rightWheel) {
+        int zoom = 1; //默认倍数,1~50 根据相机上报的倍数来设置
+        if (zoom < 1) {
+            zoom = 1;
+        }
+        if (zoom > 50) {
+            zoom = 50;
+        }
+
+        GimbalAngleSpeed angleSpeed = new GimbalAngleSpeed();
+        //data 遥杆P Y值，1024遥杆中位值,值域最大-30~30，最小-1~1 ， 3~100,  zoom是倍数
+        int pitchValue = (leftWheel - 1024) * 100 / 30;
+        int yawValue = (rightWheel - 1024) * 100 / 30;
+        //计算方式：y1-20  x 1-50 y=19/49*(x-1)+1
+        int zoomValue = (19 * (zoom - 1) / 49 + 1);
+        int pitchSpeed = -pitchValue / zoomValue;//3~100 / 1~20 = 0~100
+        if (pitchValue != 0 && pitchSpeed == 0) {//防止值等于0
+            if (pitchValue > 0) {
+                pitchSpeed = -1;
+            } else {
+                pitchSpeed = 1;
+            }
+        }
+        int yawSpeed = -yawValue / zoomValue;
+        if (yawValue != 0 && yawSpeed == 0) {//防止值等于0
+            if (yawValue > 0) {
+                yawSpeed = -1;
+            } else {
+                yawSpeed = 1;
+            }
+        }
+        angleSpeed.setPitchSpeed(pitchSpeed);
+        angleSpeed.setYawSpeed(yawSpeed);
+        if (angleSpeed.getPitchSpeed() != 0 || angleSpeed.getYawSpeed() != 0) {
+            GimbalManager2.getInstance().setGimbalAngleSpeed(angleSpeed);
         }
     }
 
