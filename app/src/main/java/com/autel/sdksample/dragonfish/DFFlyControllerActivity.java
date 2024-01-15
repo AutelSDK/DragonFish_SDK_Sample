@@ -38,7 +38,7 @@ public class DFFlyControllerActivity extends FlyControllerActivity {
     /*  LandingGearStateAdapter mLandingGearStateAdapter;
       LandingGearState selectedLandingGearState = LandingGearState.UNKNOWN;*/
     VisualSettingSwitchblade mVisualSettingSwitchblade = VisualSettingSwitchblade.UNKNOWN;
-    LandType landType = LandType.PRECISE_LANDING;//精准降落
+    LandType landType = LandType.PRECISE_LANDING_PARAM;//精准降落
     StationType stationType = StationType.FIXD_SELF;
     private Switch visualSettingEnableState;
     private EditText bslatEditText, bslongEditText, bsaltEditText, latEditText, longEditText, altEditText,
