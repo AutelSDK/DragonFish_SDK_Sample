@@ -18,6 +18,16 @@ adb remount
 adb push app-release_basestation_V1.2.apk    directory /system/app/
 adb reboot
 
+2024-1-15 SDK V2.0.6更新记录
+1、增加预设备降点功能，详见DFWayPointActivity.java中onAllMissionTest方法调用对应接口生成aut文件
+2、增加去往备降点接口，详见DFFlyControllerActivity.java中setForceLand方法示例
+/**
+* 降落到预设备降点
+* @param landIndex 降落点序号 从1开始~备降点的个数
+* @param callback
+*/
+void land(int landIndex, CallbackWithNoParam callback);
+
 2024-1-15 SDK V2.0.5更新记录
 1、更新app-release_basestation_V1.2.apk,增加平板系统开机后自启功能，无需手动启动app-release_basestation.apk
 2、支持新航线算法规划，及新航线算法规划demo示例，详见DFWayPointActivity.java
