@@ -7,6 +7,8 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Switch;
 
+import com.autel.AutelNet2.aircraft.flycontroller.FlyControllerManager2;
+import com.autel.AutelNet2.aircraft.flycontroller.engine.CommandInfoInternal;
 import com.autel.common.CallbackWithNoParam;
 import com.autel.common.CallbackWithOneParam;
 import com.autel.common.camera.visual.VisualWarningInfo;
@@ -333,5 +335,27 @@ public class DFFlyControllerActivity extends FlyControllerActivity {
 
     public void resetRadarInfoListener(View view) {
         mEvoFlyController.setAvoidanceRadarInfoListener(null);
+    }
+
+    public void setForceLand(View view) {
+        String indexStr = findViewById(R.id.forceIndex).toString();
+        if(TextUtils.isEmpty(indexStr)){
+            return;
+        }
+
+        if(null != mEvoFlyController) {
+            //备降点序号从1开始到预设的备降点个数
+            mEvoFlyController.land(Integer.parseInt(indexStr), new CallbackWithNoParam() {
+                @Override
+                public void onSuccess() {
+                    logOut("setForceLand onSuccess ");
+                }
+
+                @Override
+                public void onFailure(AutelError error) {
+                    logOut("setForceLand onFailure " + error.getDescription());
+                }
+            });
+        }
     }
 }

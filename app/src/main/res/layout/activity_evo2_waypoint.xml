@@ -150,4 +150,14 @@
         android:onClick="onLine8QuickMission"
         android:text="空中8字临时任务"
         android:textAllCaps="false" />
+    <Button
+        android:id="@+id/allMission"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/testLand"
+        android:onClick="onAllMissionTest"
+        android:text="预设备降点的航线任务"
+        android:textAllCaps="false" />
 </androidx.constraintlayout.widget.ConstraintLayout>

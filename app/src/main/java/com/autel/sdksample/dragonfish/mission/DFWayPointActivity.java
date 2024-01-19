@@ -37,6 +37,7 @@ import com.autel.common.product.AutelProductType;
 import com.autel.common.remotecontroller.RemoteControllerInfo;
 import com.autel.internal.sdk.mission.cruiser.CruiserWaypointRealTimeInfoImpl;
 import com.autel.lib.enums.MissionConstant;
+import com.autel.lib.enums.PlanningType;
 import com.autel.lib.jniHelper.NativeHelper;
 import com.autel.lib.jniHelper.PathPlanningParameter;
 import com.autel.lib.jniHelper.PathPlanningResult;
@@ -101,6 +102,7 @@ public class DFWayPointActivity extends AppCompatActivity implements View.OnClic
     private String filePath = FileUtils.getMissionFilePath() + "mission.aut";
     private boolean isDroneCheckFinish;
     private boolean isDroneOk;
+
 
 
     enum FlyState {
@@ -295,7 +297,7 @@ public class DFWayPointActivity extends AppCompatActivity implements View.OnClic
             if (!myDir.exists()) {
                 myDir.mkdirs();
             }
-
+            //转换成json字符串 可通过taskModel对象 转换调用getPathPlanningParameter(taskModel, droneLocation, subMissionInfo);方法
 
             String waypointMission = "{\n" +
                     "\t\"forceLandInfo\": [],\n" +
@@ -1086,6 +1088,185 @@ public class DFWayPointActivity extends AppCompatActivity implements View.OnClic
         Toast.makeText(this, "onLineMission: pathPlanningResult -> " + pathPlanningResult, Toast.LENGTH_SHORT).show();
 
     }
+
+    public void onAllMissionTest(View view) {
+        //对应的planningType= 15 对应枚举是PlanningType.NORMAL_MISSIONS_ALL
+
+        String missionJson = "{\n" +
+                "\t\"forceLandInfo\": [{\n" +
+                "\t\t\"altType\": 2,\n" +
+                "\t\t\"approachAlt\": 100.0,\n" +
+                "\t\t\"approachLat\": 22.672779157880587,\n" +
+                "\t\t\"approachLon\": 114.07914108466589,\n" +
+                "\t\t\"approachR\": 200.0,\n" +
+                "\t\t\"approachVel\": 20.0,\n" +
+                "\t\t\"landAlt\": 100.0,\n" +
+                "\t\t\"landAltType\": 0,\n" +
+                "\t\t\"landLat\": 22.6684658,\n" +
+                "\t\t\"landLon\": 114.0786973,\n" +
+                "\t\t\"transAlt\": 2.0\n" +
+                "\t}, {\n" +
+                "\t\t\"altType\": 2,\n" +
+                "\t\t\"approachAlt\": 100.0,\n" +
+                "\t\t\"approachLat\": 22.672779157880587,\n" +
+                "\t\t\"approachLon\": 114.07914108466589,\n" +
+                "\t\t\"approachR\": 200.0,\n" +
+                "\t\t\"approachVel\": 20.0,\n" +
+                "\t\t\"landAlt\": 100.0,\n" +
+                "\t\t\"landAltType\": 0,\n" +
+                "\t\t\"landLat\": 22.6705894,\n" +
+                "\t\t\"landLon\": 114.06611196,\n" +
+                "\t\t\"transAlt\": 2.0\n" +
+                "\t}, {\n" +
+                "\t\t\"altType\": 2,\n" +
+                "\t\t\"approachAlt\": 100.0,\n" +
+                "\t\t\"approachLat\": 22.672779157880587,\n" +
+                "\t\t\"approachLon\": 114.07914108466589,\n" +
+                "\t\t\"approachR\": 200.0,\n" +
+                "\t\t\"approachVel\": 20.0,\n" +
+                "\t\t\"landAlt\": 100.0,\n" +
+                "\t\t\"landAltType\": 0,\n" +
+                "\t\t\"landLat\": 22.6660329,\n" +
+                "\t\t\"landLon\": 114.0736645,\n" +
+                "\t\t\"transAlt\": 2.0\n" +
+                "\t}],\n" +
+                "\t\"introInfo\": {\n" +
+                "\t\t\"CycleMode\": 0,\n" +
+                "\t\t\"EndSubID\": 1,\n" +
+                "\t\t\"EndWPID\": 1.0,\n" +
+                "\t\t\"MaxVz\": 3.0,\n" +
+                "\t\t\"MinRadius\": 138.0,\n" +
+                "\t\t\"StartSubID\": 1,\n" +
+                "\t\t\"StartWPID\": 1.0,\n" +
+                "\t\t\"forceLandNum\": 3,\n" +
+                "\t\t\"initAlt\": 15.01,\n" +
+                "\t\t\"initLat\": 22.6727791,\n" +
+                "\t\t\"initLon\": 114.0732544,\n" +
+                "\t\t\"planningType\": 15,\n" +
+                "\t\t\"subMisNum\": 1\n" +
+                "\t},\n" +
+                "\t\"landInfo\": {\n" +
+                "\t\t\"altType\": 2,\n" +
+                "\t\t\"approachAlt\": 100.0,\n" +
+                "\t\t\"approachLat\": 22.672779157880587,\n" +
+                "\t\t\"approachLon\": 114.07914108466589,\n" +
+                "\t\t\"approachR\": 200.0,\n" +
+                "\t\t\"approachVel\": 20.0,\n" +
+                "\t\t\"homeAlt\": 0.0,\n" +
+                "\t\t\"homeAltType\": 2,\n" +
+                "\t\t\"homeLat\": 22.6727791,\n" +
+                "\t\t\"homeLon\": 114.0732544,\n" +
+                "\t\t\"transAlt\": 40.0\n" +
+                "\t},\n" +
+                "\t\"launchInfo\": {\n" +
+                "\t\t\"altType\": 2,\n" +
+                "\t\t\"departureAlt\": 100.0,\n" +
+                "\t\t\"departureLat\": 22.676358551131635,\n" +
+                "\t\t\"departureLon\": 114.06750749647357,\n" +
+                "\t\t\"departureR\": 200.0,\n" +
+                "\t\t\"departureVel\": 20.0,\n" +
+                "\t\t\"launchAlt\": 15.0,\n" +
+                "\t\t\"launchLat\": 22.6727791,\n" +
+                "\t\t\"launchLon\": 114.0732544,\n" +
+                "\t\t\"transAlt\": 40.0\n" +
+                "\t},\n" +
+                "\t\"missionInfo\": [{\n" +
+                "\t\t\"FinishMove\": 1,\n" +
+                "\t\t\"IANum\": 0,\n" +
+                "\t\t\"InterestArea\": [],\n" +
+                "\t\t\"LinkLostMove\": 2,\n" +
+                "\t\t\"WPNum\": 4,\n" +
+                "\t\t\"subMissionInfo\": {\n" +
+                "\t\t\t\"airLineDir\": 0.0,\n" +
+                "\t\t\t\"baseAlt\": 0.0,\n" +
+                "\t\t\t\"focalLength\": 25.6,\n" +
+                "\t\t\t\"overlapAlong\": 0,\n" +
+                "\t\t\t\"overlapSide\": 0,\n" +
+                "\t\t\t\"pixNumX\": 22489,\n" +
+                "\t\t\t\"pixNumY\": 12637,\n" +
+                "\t\t\t\"resolution\": 0.0,\n" +
+                "\t\t\t\"sensorOrient\": 1,\n" +
+                "\t\t\t\"sensorSizeX\": 35.983963,\n" +
+                "\t\t\t\"sensorSizeY\": 20.219847\n" +
+                "\t\t},\n" +
+                "\t\t\"subMissionType\": 1,\n" +
+                "\t\t\"wpInfo\": [{\n" +
+                "\t\t\t\"actionParam1\": 0.0,\n" +
+                "\t\t\t\"gimbalPitch\": 0.0,\n" +
+                "\t\t\t\"gimbalYaw\": 0.0,\n" +
+                "\t\t\t\"payloadAction\": 0,\n" +
+                "\t\t\t\"wpAlt\": 100.0,\n" +
+                "\t\t\t\"wpAltType\": 2,\n" +
+                "\t\t\t\"wpClimbMode\": 1,\n" +
+                "\t\t\t\"wpIndex\": 1,\n" +
+                "\t\t\t\"wpLat\": 22.668769650794673,\n" +
+                "\t\t\t\"wpLon\": 114.06420744442727,\n" +
+                "\t\t\t\"wpRadius\": 200.0,\n" +
+                "\t\t\t\"wpReserved1\": 0.0,\n" +
+                "\t\t\t\"wpTurnMode\": 2,\n" +
+                "\t\t\t\"wpTurnParam1\": 1.0,\n" +
+                "\t\t\t\"wpType\": 4,\n" +
+                "\t\t\t\"wpVel\": 20.0\n" +
+                "\t\t}, {\n" +
+                "\t\t\t\"actionParam1\": 0.0,\n" +
+                "\t\t\t\"gimbalPitch\": 0.0,\n" +
+                "\t\t\t\"gimbalYaw\": 0.0,\n" +
+                "\t\t\t\"payloadAction\": 0,\n" +
+                "\t\t\t\"wpAlt\": 100.0,\n" +
+                "\t\t\t\"wpAltType\": 2,\n" +
+                "\t\t\t\"wpClimbMode\": 1,\n" +
+                "\t\t\t\"wpIndex\": 2,\n" +
+                "\t\t\t\"wpLat\": 22.670810147561568,\n" +
+                "\t\t\t\"wpLon\": 114.05924017651097,\n" +
+                "\t\t\t\"wpRadius\": 138.0,\n" +
+                "\t\t\t\"wpReserved1\": 0.0,\n" +
+                "\t\t\t\"wpTurnMode\": 2,\n" +
+                "\t\t\t\"wpTurnParam1\": 1.0,\n" +
+                "\t\t\t\"wpType\": 4,\n" +
+                "\t\t\t\"wpVel\": 20.0\n" +
+                "\t\t}, {\n" +
+                "\t\t\t\"actionParam1\": 0.0,\n" +
+                "\t\t\t\"gimbalPitch\": 0.0,\n" +
+                "\t\t\t\"gimbalYaw\": 0.0,\n" +
+                "\t\t\t\"payloadAction\": 0,\n" +
+                "\t\t\t\"wpAlt\": 100.0,\n" +
+                "\t\t\t\"wpAltType\": 2,\n" +
+                "\t\t\t\"wpClimbMode\": 1,\n" +
+                "\t\t\t\"wpIndex\": 3,\n" +
+                "\t\t\t\"wpLat\": 22.67626147511473,\n" +
+                "\t\t\t\"wpLon\": 114.06234265613989,\n" +
+                "\t\t\t\"wpRadius\": 138.0,\n" +
+                "\t\t\t\"wpReserved1\": 0.0,\n" +
+                "\t\t\t\"wpTurnMode\": 2,\n" +
+                "\t\t\t\"wpTurnParam1\": 1.0,\n" +
+                "\t\t\t\"wpType\": 4,\n" +
+                "\t\t\t\"wpVel\": 20.0\n" +
+                "\t\t}, {\n" +
+                "\t\t\t\"actionParam1\": 0.0,\n" +
+                "\t\t\t\"gimbalPitch\": 0.0,\n" +
+                "\t\t\t\"gimbalYaw\": 0.0,\n" +
+                "\t\t\t\"payloadAction\": 0,\n" +
+                "\t\t\t\"wpAlt\": 100.0,\n" +
+                "\t\t\t\"wpAltType\": 2,\n" +
+                "\t\t\t\"wpClimbMode\": 1,\n" +
+                "\t\t\t\"wpIndex\": 4,\n" +
+                "\t\t\t\"wpLat\": 22.66869045232768,\n" +
+                "\t\t\t\"wpLon\": 114.07063626402697,\n" +
+                "\t\t\t\"wpRadius\": 138.0,\n" +
+                "\t\t\t\"wpReserved1\": 0.0,\n" +
+                "\t\t\t\"wpTurnMode\": 2,\n" +
+                "\t\t\t\"wpTurnParam1\": 1.0,\n" +
+                "\t\t\t\"wpType\": 4,\n" +
+                "\t\t\t\"wpVel\": 20.0\n" +
+                "\t\t}]\n" +
+                "\t}]\n" +
+                "}";
+        PathPlanningResult pathPlanningResult = RealTimePathPlaningUtils.getMissionPath(missionJson);
+        Log.d(TAG, "allMissionTest: pathPlanningResult -> " + pathPlanningResult);
+        Toast.makeText(this, "allMissionTest: pathPlanningResult -> " + pathPlanningResult, Toast.LENGTH_SHORT).show();
+
+    }
+
 
 
     private void initData() {
