@@ -27,6 +27,7 @@ adb reboot
 * @param callback
 */
 void land(int landIndex, CallbackWithNoParam callback);
+3、需要更新对应V3飞控仿真版本，及真机版本方可验证此功能
 
 2024-1-15 SDK V2.0.5更新记录
 1、更新app-release_basestation_V1.2.apk,增加平板系统开机后自启功能，无需手动启动app-release_basestation.apk
