@@ -21,6 +21,7 @@ import com.autel.common.battery.cruiser.CruiserBatteryInfo;
 import com.autel.common.camera.CameraProduct;
 import com.autel.common.error.AutelError;
 import com.autel.common.flycontroller.AutoSafeState;
+import com.autel.common.flycontroller.FileDataType;
 import com.autel.common.flycontroller.FlightErrorState;
 import com.autel.common.flycontroller.FlyMode;
 import com.autel.common.flycontroller.ModelType;
@@ -1455,10 +1456,23 @@ public class DFWayPointActivity extends AppCompatActivity implements View.OnClic
 
                 @Override
                 public void onSuccess(Boolean aBoolean) {
-                    flyState = FlyState.Prepare;
-                    AutelLog.d("prepareMission success");
-                    Toast.makeText(DFWayPointActivity.this, "prepare success", Toast.LENGTH_LONG).show();
+                    //通知飞控，文件已经上传成功 返回成功后，才能执行startMission
+                    mEvoFlyController.notifyFileStatus(FileDataType.WAYPOINT, autelMission.missionId, new CallbackWithOneParam<Boolean>() {
+                        @Override
+                        public void onSuccess(Boolean aBoolean) {
+                            AutelLog.d(TAG, " notifyFileStatus onSuccess " + aBoolean);
+                            flyState = FlyState.Prepare;
+                            AutelLog.d("prepareMission success");
+                            Toast.makeText(DFWayPointActivity.this, "prepare success", Toast.LENGTH_LONG).show();
 
+
+                        }
+
+                        @Override
+                        public void onFailure(AutelError autelError) {
+                            AutelLog.d("notifyFileStatus onFailure");
+                        }
+                    });
 
                 }
 
