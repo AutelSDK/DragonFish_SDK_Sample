@@ -1,11 +1,6 @@
 package com.autel.sdksample.dragonfish.mission;
 
 import static com.autel.lib.enums.MissionConstant.PIXEL_SIZE_XT701;
-import static com.autel.lib.enums.MissionConstant.PIXEL_SIZE_XT706;
-import static com.autel.lib.enums.MissionConstant.PIXEL_SIZE_XT708;
-import static com.autel.lib.enums.MissionConstant.PIXEL_SIZE_XT709;
-import static com.autel.lib.jniHelper.NativeHelper.getPathPlanningParameter;
-import static com.autel.sdksample.utils.MissionSaveUtils.getDroneLocation;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -14,11 +9,14 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.autel.common.CallbackWithNoParam;
 import com.autel.common.CallbackWithOneParam;
 import com.autel.common.CallbackWithOneParamProgress;
 import com.autel.common.battery.cruiser.CruiserBatteryInfo;
-import com.autel.common.camera.CameraProduct;
 import com.autel.common.error.AutelError;
 import com.autel.common.flycontroller.AutoSafeState;
 import com.autel.common.flycontroller.FileDataType;
@@ -27,18 +25,12 @@ import com.autel.common.flycontroller.FlyMode;
 import com.autel.common.flycontroller.ModelType;
 import com.autel.common.flycontroller.SafeCheck;
 import com.autel.common.flycontroller.cruiser.CruiserFlyControllerInfo;
-import com.autel.common.mission.AutelCoordinate3D;
 import com.autel.common.mission.AutelMission;
 import com.autel.common.mission.RealTimeInfo;
-import com.autel.common.mission.base.DirectionLatLng;
-import com.autel.common.mission.base.DistanceModel;
 import com.autel.common.mission.cruiser.CruiserWaypointFinishedAction;
 import com.autel.common.mission.cruiser.CruiserWaypointMission;
 import com.autel.common.product.AutelProductType;
-import com.autel.common.remotecontroller.RemoteControllerInfo;
 import com.autel.internal.sdk.mission.cruiser.CruiserWaypointRealTimeInfoImpl;
-import com.autel.lib.enums.MissionConstant;
-import com.autel.lib.enums.PlanningType;
 import com.autel.lib.jniHelper.NativeHelper;
 import com.autel.lib.jniHelper.PathPlanningParameter;
 import com.autel.lib.jniHelper.PathPlanningResult;
@@ -47,36 +39,18 @@ import com.autel.sdk.battery.CruiserBattery;
 import com.autel.sdk.flycontroller.CruiserFlyController;
 import com.autel.sdk.mission.MissionManager;
 import com.autel.sdk.product.BaseProduct;
-import com.autel.sdk.remotecontroller.AutelRemoteController;
 import com.autel.sdk10.utils.BytesUtils;
 import com.autel.sdksample.PhoneBatteryManager;
 import com.autel.sdksample.R;
 import com.autel.sdksample.TestApplication;
 import com.autel.sdksample.base.util.FileUtils;
-import com.autel.sdksample.dragonfish.mission.enums.CameraActionType;
-import com.autel.sdksample.dragonfish.mission.enums.DroneHeadingControl;
-import com.autel.sdksample.dragonfish.mission.enums.MissionType;
-import com.autel.sdksample.dragonfish.mission.enums.WaypointType;
-import com.autel.sdksample.dragonfish.mission.model.BaseMissionModel;
-import com.autel.sdksample.dragonfish.mission.model.CameraActionItem;
-import com.autel.sdksample.dragonfish.mission.model.TaskModel;
-import com.autel.sdksample.dragonfish.mission.model.WaypointMissionModel;
-import com.autel.sdksample.dragonfish.mission.model.WaypointModel;
 import com.autel.sdksample.dragonfish.rxrunnable.IOUiRunnable;
 import com.autel.sdksample.utils.RealTimePathPlaningUtils;
 import com.autel.util.log.AutelLog;
-import com.autel.video.NetWorkProxyJni;
 import com.google.gson.Gson;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 
 import io.reactivex.Observable;
 

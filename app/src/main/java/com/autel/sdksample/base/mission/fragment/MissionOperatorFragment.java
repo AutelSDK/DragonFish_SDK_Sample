@@ -22,9 +22,7 @@ import com.autel.common.flycontroller.FlightErrorState;
 import com.autel.common.mission.AutelMission;
 import com.autel.common.mission.MissionExecuteState;
 import com.autel.common.mission.RealTimeInfo;
-import com.autel.common.mission.xstar.OrbitMission;
-import com.autel.common.mission.xstar.Waypoint;
-import com.autel.common.mission.xstar.WaypointMission;
+import com.autel.common.mission.evo.Waypoint;
 import com.autel.sdk.mission.MissionManager;
 import com.autel.sdk.product.BaseProduct;
 import com.autel.sdksample.R;
@@ -241,12 +239,12 @@ public class MissionOperatorFragment extends Fragment {
                                 }
                             });
 
-                            if (autelMission instanceof WaypointMission) {
-
-                                List<Waypoint> wpList = ((WaypointMission) autelMission).wpList;
-                            } else if (autelMission instanceof OrbitMission) {
-
-                            }
+//                            if (autelMission instanceof WaypointMission) {
+//
+//                                List<Waypoint> wpList = ((WaypointMission) autelMission).wpList;
+//                            } else if (autelMission instanceof OrbitMission) {
+//
+//                            }
                             showDownloadMission(autelMission.toString());
                         }
 

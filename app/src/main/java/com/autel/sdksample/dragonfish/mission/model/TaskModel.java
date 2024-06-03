@@ -5,7 +5,6 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 
 import com.autel.AutelNet2.camera.enums.CameraType;
-import com.autel.common.mission.base.DistanceModel;
 import com.autel.common.mission.evo.RemoteControlLostSignalAction;
 import com.autel.lib.enums.MissionConstant;
 import com.autel.lib.enums.PlanningType;

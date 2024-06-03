@@ -7,7 +7,7 @@ import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import com.autel.common.mission.xstar.Waypoint;
+import com.autel.common.mission.evo.Waypoint;
 import com.autel.sdksample.R;
 
 /**

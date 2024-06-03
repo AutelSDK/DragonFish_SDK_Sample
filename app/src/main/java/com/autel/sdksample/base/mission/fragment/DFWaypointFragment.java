@@ -10,15 +10,14 @@ import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.Spinner;
 
+import androidx.annotation.Nullable;
+
 import com.autel.common.mission.AutelCoordinate3D;
 import com.autel.common.mission.AutelMission;
 import com.autel.common.mission.cruiser.CruiserWaypoint;
 import com.autel.common.mission.cruiser.CruiserWaypointFinishedAction;
 import com.autel.common.mission.cruiser.CruiserWaypointMission;
-import com.autel.common.mission.evo.EvoWaypoint;
-import com.autel.common.mission.evo.EvoWaypointFinishedAction;
-import com.autel.common.mission.evo.EvoWaypointMission;
-import com.autel.common.mission.xstar.Waypoint;
+import com.autel.common.mission.evo.Waypoint;
 import com.autel.sdk10.utils.BytesUtils;
 import com.autel.sdksample.R;
 import com.autel.sdksample.base.mission.AutelLatLng;
@@ -29,8 +28,6 @@ import com.autel.sdksample.base.mission.adapter.EvoWaypointFinishActionAdapter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
-import androidx.annotation.Nullable;
 
 /**
  *

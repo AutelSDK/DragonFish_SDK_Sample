@@ -39,10 +39,10 @@ public abstract class BaseActivity<T> extends AppCompatActivity {
         if (null != product) {
             mController = initController(product);
         }
-        if (null == mController) {
-            setContentView(R.layout.ac_connect_exception);
-            return;
-        }
+//        if (null == mController) {
+//            setContentView(R.layout.ac_connect_exception);
+//            return;
+//        }
         setContentView(R.layout.ac_base);
         ((LinearLayout) findViewById(R.id.base_layout)).addView(View.inflate(this, getCustomViewResId(), null));
         initUi();

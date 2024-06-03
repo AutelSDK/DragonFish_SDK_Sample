@@ -9,6 +9,7 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.autel.AutelNet2.remotecontroller.serial.AutelSerialManager;
 import com.autel.common.CallbackWithNoParam;
 import com.autel.common.CallbackWithOneParam;
 import com.autel.common.RangePair;
@@ -484,7 +485,9 @@ public abstract class RemoteControllerActivity extends BaseActivity<AutelRemoteC
             }
         });
     }
+
     public static final String PAD_SERIALNUMBER_PATH = "/efs/.SnFile";
+
     /**
      * 读取本地文件转字符串
      */
@@ -511,11 +514,12 @@ public abstract class RemoteControllerActivity extends BaseActivity<AutelRemoteC
                     is.close();
                 }
             } catch (Exception ignored) {
-               ignored.printStackTrace();
+                ignored.printStackTrace();
             }
         }
         return sb.toString();
     }
+
     public void getSerialNumber(View view) {
         //需要系统签名才能读取，否则会报错
         String serialNumber = readFileToString(PAD_SERIALNUMBER_PATH);
@@ -524,17 +528,25 @@ public abstract class RemoteControllerActivity extends BaseActivity<AutelRemoteC
 
 
     public void setRemoteButtonControllerMonitor(View view) {
-        mController.setRemoteButtonControllerListener(new CallbackWithOneParam<RemoteControllerNavigateButtonEvent>() {
+        AutelSerialManager.getInstance().addSerialKeystrokeListener(TAG, new AutelSerialManager.SerialKeystrokeListener() {
             @Override
-            public void onFailure(AutelError rcError) {
-                logOut("setRemoteButtonControllerListener rcError " + rcError.getDescription());
-            }
+            public void onResponse(RemoteControllerNavigateButtonEvent remoteControllerNavigateButtonEvent) {
+                logOut("setRemoteButtonControllerListener onResponse " + remoteControllerNavigateButtonEvent);
 
-            @Override
-            public void onSuccess(RemoteControllerNavigateButtonEvent rcControlBtnEvent) {
-                logOut("setRemoteButtonControllerListener onSuccess " + rcControlBtnEvent);
             }
         });
+
+//        mController.setRemoteButtonControllerListener(new CallbackWithOneParam<RemoteControllerNavigateButtonEvent>() {
+//            @Override
+//            public void onFailure(AutelError rcError) {
+//                logOut("setRemoteButtonControllerListener rcError " + rcError.getDescription());
+//            }
+//
+//            @Override
+//            public void onSuccess(RemoteControllerNavigateButtonEvent rcControlBtnEvent) {
+//                logOut("setRemoteButtonControllerListener onSuccess " + rcControlBtnEvent);
+//            }
+//        });
     }
 
     public void resetRemoteButtonControllerMonitor(View view) {
@@ -580,7 +592,7 @@ public abstract class RemoteControllerActivity extends BaseActivity<AutelRemoteC
         mController.setControlMenuListener(new CallbackWithOneParam<int[]>() {
             @Override
             public void onSuccess(int[] data) {
-                logOut("setControlMenuListener onSuccess " + data[0]+" "+data[1]+" "+ data[2]+" "+data[3]+ " "+ data[4]+" "+data[5]);
+                logOut("setControlMenuListener onSuccess " + data[0] + " " + data[1] + " " + data[2] + " " + data[3] + " " + data[4] + " " + data[5]);
             }
 
             @Override

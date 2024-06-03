@@ -2,7 +2,7 @@ package com.autel.sdksample.base.mission.fragment;
 
 import android.annotation.SuppressLint;
 
-import com.autel.common.mission.xstar.Waypoint;
+import com.autel.common.mission.evo.Waypoint;
 import com.autel.sdksample.base.mission.AutelLatLng;
 import com.autel.sdksample.base.mission.MapOperator;
 import com.autel.sdksample.base.mission.MapRectifyUtil;
