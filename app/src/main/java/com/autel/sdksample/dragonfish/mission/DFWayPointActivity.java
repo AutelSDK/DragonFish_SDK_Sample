@@ -818,7 +818,11 @@ public class DFWayPointActivity extends AppCompatActivity implements View.OnClic
                 "}";
         PathPlanningResult pathPlanningResult = RealTimePathPlaningUtils.getMissionPath(goHomeJson);
         Log.d(TAG, "testGoHomeMission: pathPlanningResult -> " + pathPlanningResult);
-        Toast.makeText(this, "testGoHomeMission: pathPlanningResult -> " + pathPlanningResult, Toast.LENGTH_SHORT).show();
+        //返回0表示成功，返回非0表示失败
+        PathPlanningParameter pathPlanningParameter = new Gson().fromJson(goHomeJson, PathPlanningParameter.class);//getPathPlanningParameter(taskModel, droneLocation, subMissionInfo);
+
+        int res = NativeHelper.writeNewMissionFile(filePath, pathPlanningParameter);
+        Toast.makeText(this, "testGoHomeMission: res -> " + res, Toast.LENGTH_SHORT).show();
 
     }
     public void testLand(View view) {

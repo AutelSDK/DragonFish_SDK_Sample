@@ -8,6 +8,7 @@ import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.autel.AutelNet2.remotecontroller.serial.AutelSerialManager;
 import com.autel.common.CallbackWithNoParam;
@@ -416,31 +417,23 @@ public abstract class RemoteControllerActivity extends BaseActivity<AutelRemoteC
     }
 
     public void setRCCommandStickMode(View view) {
-        mController.setCommandStickMode(commandStickMode, new CallbackWithNoParam() {
-            @Override
-            public void onFailure(AutelError rcError) {
-                logOut("setCommandStickMode RCError " + rcError.getDescription());
-            }
+        AutelSerialManager.getInstance().setCommandStickMode(commandStickMode);
 
-            @Override
-            public void onSuccess() {
-                logOut("setCommandStickMode onSuccess ");
-            }
-        });
     }
 
     public void getRCCommandStickMode(View view) {
-        mController.getCommandStickMode(new CallbackWithOneParam<RemoteControllerCommandStickMode>() {
+        AutelSerialManager.getInstance().getCommandStickMode(new CallbackWithOneParam<RemoteControllerCommandStickMode>() {
             @Override
-            public void onFailure(AutelError rcError) {
-                logOut("getCommandStickMode RCError " + rcError.getDescription());
+            public void onSuccess(RemoteControllerCommandStickMode remoteControllerCommandStickMode) {
+                logOut("getRCCommandStickMode->"+remoteControllerCommandStickMode);
             }
 
             @Override
-            public void onSuccess(RemoteControllerCommandStickMode mode) {
-                logOut("getCommandStickMode onSuccess " + mode);
+            public void onFailure(AutelError autelError) {
+
             }
         });
+//        AutelSerialManager.getInstance().addSerialRcGetModeListener(TAG, i -> runOnUiThread(() -> Toast.makeText(RemoteControllerActivity.this,"Toast "+i,1).show()));
     }
 
     public void setYawCoefficient(View view) {
@@ -536,17 +529,7 @@ public abstract class RemoteControllerActivity extends BaseActivity<AutelRemoteC
             }
         });
 
-//        mController.setRemoteButtonControllerListener(new CallbackWithOneParam<RemoteControllerNavigateButtonEvent>() {
-//            @Override
-//            public void onFailure(AutelError rcError) {
-//                logOut("setRemoteButtonControllerListener rcError " + rcError.getDescription());
-//            }
-//
-//            @Override
-//            public void onSuccess(RemoteControllerNavigateButtonEvent rcControlBtnEvent) {
-//                logOut("setRemoteButtonControllerListener onSuccess " + rcControlBtnEvent);
-//            }
-//        });
+
     }
 
     public void resetRemoteButtonControllerMonitor(View view) {

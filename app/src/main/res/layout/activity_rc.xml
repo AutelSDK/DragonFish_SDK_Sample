@@ -230,7 +230,7 @@
             android:layout_height="wrap_content"
             android:background="@drawable/text_background"
             android:orientation="horizontal"
-            android:visibility="gone">
+            android:visibility="visible">
 
             <Button
                 android:layout_width="wrap_content"
@@ -260,7 +260,7 @@
             android:padding="@dimen/text_padding"
             android:text="getCommandStickMode"
             android:textAllCaps="false"
-            android:visibility="gone" />
+            android:visibility="visible" />
 
         <LinearLayout
             android:layout_width="wrap_content"
