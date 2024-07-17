@@ -418,7 +418,6 @@ public abstract class RemoteControllerActivity extends BaseActivity<AutelRemoteC
 
     public void setRCCommandStickMode(View view) {
         AutelSerialManager.getInstance().setCommandStickMode(commandStickMode);
-
     }
 
     public void getRCCommandStickMode(View view) {
